@@ -3,10 +3,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 	"html/template"
 	"log"
 	"net/http"
-	"golang-boilerplate/backend/models"
 )
 
 func HandleCategoryIndex(w http.ResponseWriter, r *http.Request) {
@@ -35,8 +36,7 @@ func HandleCategoryIndex(w http.ResponseWriter, r *http.Request) {
 
 // HandleCategoryList handles listing categories.
 func HandleCategoryList(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	categories := []models.Category{}
 
@@ -69,8 +69,7 @@ func HandleCategoryList(w http.ResponseWriter, r *http.Request) {
 
 // HandleCategoryCreate handles creating a new category.
 func HandleCategoryCreate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	name := r.FormValue("name")
 
@@ -88,8 +87,7 @@ func HandleCategoryCreate(w http.ResponseWriter, r *http.Request) {
 
 // HandleCategoryUpdate handles updating an existing category.
 func HandleCategoryUpdate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 	name := r.FormValue("name")
@@ -108,8 +106,7 @@ func HandleCategoryUpdate(w http.ResponseWriter, r *http.Request) {
 
 // HandleCategoryDelete handles deleting an existing category.
 func HandleCategoryDelete(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 

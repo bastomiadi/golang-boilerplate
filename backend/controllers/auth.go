@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"database/sql"
 	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 	"golang-boilerplate/utils"
 	"html/template"
 	"log"
@@ -16,7 +16,7 @@ type AuthResponse struct {
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		email := r.FormValue("email")
+		email := r.FormValue("username")
 		password := r.FormValue("password")
 
 		// Example login logic
@@ -37,6 +37,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleRegister(w http.ResponseWriter, r *http.Request) {
+	db := config.GetDB()
+
 	if r.Method == http.MethodPost {
 		name := r.FormValue("name")
 		email := r.FormValue("email")
@@ -55,7 +57,6 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Create user in database
-			db := getDB()
 			err = models.CreateUser(db, name, email, hashedPassword)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
@@ -75,15 +76,6 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 	// If not a POST request, show the register page
 	ShowRegisterPage(w, r)
-}
-
-func getDB() *sql.DB {
-	// Example function to get database connection, replace with your actual implementation
-	db, err := sql.Open("mysql", "root:@/golang-boilerplate")
-	if err != nil {
-		log.Fatalf("Could not connect to the database: %v", err)
-	}
-	return db
 }
 
 func ShowLoginPage(w http.ResponseWriter, r *http.Request) {

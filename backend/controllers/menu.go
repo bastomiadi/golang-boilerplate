@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 )
 
 // HandleMenuList handles listing menus.
 func HandleMenuList(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	menus := []models.Menu{}
 
@@ -45,8 +45,7 @@ func HandleMenuList(w http.ResponseWriter, r *http.Request) {
 
 // HandleMenuCreate handles creating a new menu.
 func HandleMenuCreate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	name := r.FormValue("name")
 	link := r.FormValue("link")
@@ -66,8 +65,7 @@ func HandleMenuCreate(w http.ResponseWriter, r *http.Request) {
 
 // HandleMenuUpdate handles updating an existing menu.
 func HandleMenuUpdate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 	name := r.FormValue("name")
@@ -88,8 +86,7 @@ func HandleMenuUpdate(w http.ResponseWriter, r *http.Request) {
 
 // HandleMenuDelete handles deleting an existing menu.
 func HandleMenuDelete(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 

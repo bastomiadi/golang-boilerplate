@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 )
 
 // HandleRoleList handles listing roles.
 func HandleRoleList(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	roles := []models.Role{}
 
@@ -45,8 +45,7 @@ func HandleRoleList(w http.ResponseWriter, r *http.Request) {
 
 // HandleRoleCreate handles creating a new role.
 func HandleRoleCreate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	name := r.FormValue("name")
 
@@ -64,8 +63,7 @@ func HandleRoleCreate(w http.ResponseWriter, r *http.Request) {
 
 // HandleRoleUpdate handles updating an existing role.
 func HandleRoleUpdate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 	name := r.FormValue("name")
@@ -84,8 +82,7 @@ func HandleRoleUpdate(w http.ResponseWriter, r *http.Request) {
 
 // HandleRoleDelete handles deleting an existing role.
 func HandleRoleDelete(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 

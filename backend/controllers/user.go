@@ -7,16 +7,16 @@ import (
 	"net/http"
 
 	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 )
 
 // HandleUserList handles listing users.
 func HandleUserList(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	users := []models.User{}
 
-	rows, err := db.Query("SELECT id, username, email, role FROM users ORDER BY id DESC")
+	rows, err := db.Query("SELECT id, name, username, email FROM users ORDER BY id DESC")
 	if err != nil {
 		log.Fatalf("Failed to query users: %v", err)
 		http.Error(w, "Failed to query users", http.StatusInternalServerError)
@@ -26,7 +26,7 @@ func HandleUserList(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.ID, &user.Username, &user.Email); err != nil {
+		if err := rows.Scan(&user.ID, &user.Name, &user.Username, &user.Email); err != nil {
 			log.Fatalf("Failed to scan user: %v", err)
 			http.Error(w, "Failed to scan users", http.StatusInternalServerError)
 			return
@@ -45,15 +45,14 @@ func HandleUserList(w http.ResponseWriter, r *http.Request) {
 
 // HandleUserCreate handles creating a new user.
 func HandleUserCreate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
+	name := r.FormValue("name")
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	role := r.FormValue("role")
 
-	_, err := db.Exec("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)", username, email, password, role)
+	_, err := db.Exec("INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)", name, username, email, password)
 	if err != nil {
 		log.Fatalf("Failed to insert user: %v", err)
 		http.Error(w, "Failed to insert user", http.StatusInternalServerError)
@@ -67,16 +66,15 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 
 // HandleUserUpdate handles updating an existing user.
 func HandleUserUpdate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
+	name := r.FormValue("name")
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	role := r.FormValue("role")
 
-	_, err := db.Exec("UPDATE users SET username = ?, email = ?, password = ?, role = ? WHERE id = ?", username, email, password, role, id)
+	_, err := db.Exec("UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?", name, username, email, password, id)
 	if err != nil {
 		log.Fatalf("Failed to update user: %v", err)
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
@@ -90,8 +88,7 @@ func HandleUserUpdate(w http.ResponseWriter, r *http.Request) {
 
 // HandleUserDelete handles deleting an existing user.
 func HandleUserDelete(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 

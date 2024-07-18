@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 )
 
 // HandlePermissionList handles listing permissions.
 func HandlePermissionList(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	permissions := []models.Permission{}
 
@@ -45,8 +45,7 @@ func HandlePermissionList(w http.ResponseWriter, r *http.Request) {
 
 // HandlePermissionCreate handles creating a new permission.
 func HandlePermissionCreate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	name := r.FormValue("name")
 
@@ -64,8 +63,7 @@ func HandlePermissionCreate(w http.ResponseWriter, r *http.Request) {
 
 // HandlePermissionUpdate handles updating an existing permission.
 func HandlePermissionUpdate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 	name := r.FormValue("name")
@@ -84,8 +82,7 @@ func HandlePermissionUpdate(w http.ResponseWriter, r *http.Request) {
 
 // HandlePermissionDelete handles deleting an existing permission.
 func HandlePermissionDelete(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 

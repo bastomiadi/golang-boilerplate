@@ -13,6 +13,8 @@ func CreateMenusTable(db *sql.DB) {
         name VARCHAR(255) NOT NULL,
         link VARCHAR(255) NOT NULL,
         parent INT DEFAULT 0,
+		icon VARCHAR(50),
+    	display_order INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
     );`

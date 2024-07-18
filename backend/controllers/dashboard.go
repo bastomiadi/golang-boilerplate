@@ -6,12 +6,25 @@ import (
 )
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
-	layout := "backend/views/layouts/main.html"
-	dashboard := "backend/views/dashboard.html"
-	tmpl, err := template.ParseFiles(layout, dashboard)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// Parse main layout template and content template
+	tmpl := template.Must(template.ParseFiles(
+		"backend/views/partials/header.html",
+		"backend/views/partials/sidebar.html",
+		"backend/views/partials/footer.html",
+		"backend/views/layouts/main.html",
+		"backend/views/dashboard/index.html",
+		"backend/views/categories/modals.html",
+	))
+
+	// Data for main layout template
+	data := struct {
+		Title string
+	}{
+		Title: "Dashboard",
 	}
-	tmpl.ExecuteTemplate(w, "main", nil)
+
+	// Execute main layout template with data
+	if err := tmpl.ExecuteTemplate(w, "main.html", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"golang-boilerplate/backend/models"
+	"golang-boilerplate/config"
 )
 
 // HandleCategoryIndex serves the index.html file for category management
@@ -37,8 +38,7 @@ func HandleProductIndex(w http.ResponseWriter, r *http.Request) {
 
 // HandleProductList handles listing products.
 func HandleProductList(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	products := []models.Product{}
 
@@ -71,8 +71,7 @@ func HandleProductList(w http.ResponseWriter, r *http.Request) {
 
 // HandleProductCreate handles creating a new product.
 func HandleProductCreate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	name := r.FormValue("name")
 	price := r.FormValue("price")
@@ -92,8 +91,7 @@ func HandleProductCreate(w http.ResponseWriter, r *http.Request) {
 
 // HandleProductUpdate handles updating an existing product.
 func HandleProductUpdate(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 	name := r.FormValue("name")
@@ -114,8 +112,7 @@ func HandleProductUpdate(w http.ResponseWriter, r *http.Request) {
 
 // HandleProductDelete handles deleting an existing product.
 func HandleProductDelete(w http.ResponseWriter, r *http.Request) {
-	db := getDB() // Function to get DB connection
-	defer db.Close()
+	db := config.GetDB()
 
 	id := r.FormValue("id")
 
