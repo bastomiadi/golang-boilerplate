@@ -6,6 +6,9 @@
 {{ define "content" }}
 <div class="row">
     <div class="col-md-12">
+        <button id="showCreateCategoryModalBtn" class="btn btn-success mb-3">
+            <i class="fas fa-plus"></i> Create Category
+        </button>
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Categories</h3>
@@ -42,7 +45,7 @@
 <script>
     $(document).ready(function () {
         // Initialize DataTable
-        $('#categoriesTable').DataTable({
+        var table = $('#categoriesTable').DataTable({
             processing: true,
             serverSide: false, // You can set this to true for server-side processing
             ajax: {
@@ -70,13 +73,84 @@
             ]
         });
 
+        // Show create category modal
+        $('#showCreateCategoryModalBtn').click(function () {
+            $('#createCategoryModal').modal('show');
+        });
+
+        // Handle form submission for create category
+        $('#createCategoryForm').submit(function (e) {
+            e.preventDefault();
+            const name = $('#createCategoryName').val();
+
+            // Perform AJAX create
+            $.ajax({
+                url: '/backend/categories/create',
+                method: 'POST',
+                data: { name: name },
+                success: function (response) {
+                    $('#createCategoryModal').modal('hide');
+                    Swal.fire(
+                        'Created!',
+                        'Category has been created.',
+                        'success'
+                    ).then(() => {
+                        table.ajax.reload();
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to create category:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Failed to create category.',
+                        'error'
+                    );
+                }
+            });
+        });
+
         // Handle edit button click
         $('#categoriesTable').on('click', '.editBtn', function () {
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#editCategoryId').val(id);
             $('#editCategoryName').val(name);
-            $('#editCategoryModal').modal('show');
+            $('#editCategoryModal').modal('show'); // Ensure modal ID matches
+        });
+
+        // Handle form submission for edit category
+        $('#editCategoryForm').submit(function (e) {
+            e.preventDefault();
+            const id = $('#editCategoryId').val();
+            const name = $('#editCategoryName').val();
+
+            // Perform AJAX update
+            $.ajax({
+                url: '/backend/categories/update',
+                method: 'POST',
+                data: {
+                    id: id,
+                    name: name
+                },
+                success: function (response) {
+                    $('#editCategoryModal').modal('hide');
+                    Swal.fire(
+                        'Updated!',
+                        'Category has been updated.',
+                        'success'
+                    ).then(() => {
+                        table.ajax.reload();
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to update category:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Failed to update category.',
+                        'error'
+                    );
+                }
+            });
         });
 
         // Handle delete button click
@@ -103,7 +177,7 @@
                                 'Category has been deleted.',
                                 'success'
                             ).then(() => {
-                                $('#categoriesTable').DataTable().ajax.reload();
+                                table.ajax.reload();
                             });
                         },
                         error: function (xhr, status, error) {
@@ -115,77 +189,6 @@
                             );
                         }
                     });
-                }
-            });
-        });
-
-        // Handle form submission for edit category
-        $('#editCategoryForm').submit(function (e) {
-            e.preventDefault();
-            const id = $('#editCategoryId').val();
-            const name = $('#editCategoryName').val();
-
-            // Perform AJAX update
-            $.ajax({
-                url: '/backend/categories/update',
-                method: 'POST',
-                data: {
-                    id: id,
-                    name: name
-                },
-                success: function (response) {
-                    $('#editCategoryModal').modal('hide');
-                    Swal.fire(
-                        'Updated!',
-                        'Category has been updated.',
-                        'success'
-                    ).then(() => {
-                        $('#categoriesTable').DataTable().ajax.reload();
-                    });
-                },
-                error: function (xhr, status, error) {
-                    console.error('Failed to update category:', error);
-                    Swal.fire(
-                        'Error!',
-                        'Failed to update category.',
-                        'error'
-                    );
-                }
-            });
-        });
-
-        // Show create category modal
-        $('#showCreateCategoryModalBtn').click(function () {
-            $('#createCategoryModal').modal('show');
-        });
-
-        // Handle form submission for create category
-        $('#createCategoryForm').submit(function (e) {
-            e.preventDefault();
-            const name = $('#createCategoryName').val();
-
-            // Perform AJAX create
-            $.ajax({
-                url: '/backend/categories/create',
-                method: 'POST',
-                data: { name: name },
-                success: function (response) {
-                    $('#createCategoryModal').modal('hide');
-                    Swal.fire(
-                        'Created!',
-                        'Category has been created.',
-                        'success'
-                    ).then(() => {
-                        $('#categoriesTable').DataTable().ajax.reload();
-                    });
-                },
-                error: function (xhr, status, error) {
-                    console.error('Failed to create category:', error);
-                    Swal.fire(
-                        'Error!',
-                        'Failed to create category.',
-                        'error'
-                    );
                 }
             });
         });

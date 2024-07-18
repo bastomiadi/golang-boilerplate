@@ -7,6 +7,9 @@
 
 <div class="row">
     <div class="col-md-12">
+        <button id="showCreateProductModalBtn" class="btn btn-success mb-3">
+            <i class="fas fa-plus"></i> Create Product
+        </button>
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Products</h3>
@@ -75,6 +78,63 @@
                     }
                 }
             ]
+        });
+
+        // Load categories into select options
+        function loadCategories(selectElement) {
+            $.ajax({
+                url: '/backend/categories/list',
+                method: 'GET',
+                success: function (categories) {
+                    $(selectElement).empty();
+                    categories.forEach(category => {
+                        $(selectElement).append(new Option(category.name, category.id));
+                    });
+                }
+            });
+        }
+    
+        // Show create product modal
+        $('#showCreateProductModalBtn').click(function () {
+            loadCategories('#createProductCategory');
+            $('#createProductModal').modal('show');
+        });
+
+        // Handle form submission for create product
+        $('#createProductForm').submit(function (e) {
+            e.preventDefault();
+            const name = $('#createProductName').val();
+            const categoryId = $('#createProductCategory').val();
+            const price = $('#createProductPrice').val();
+
+            // Perform AJAX create
+            $.ajax({
+                url: '/backend/products/create',
+                method: 'POST',
+                data: {
+                    name: name,
+                    category_id: categoryId,
+                    price: price
+                },
+                success: function (response) {
+                    $('#createProductModal').modal('hide');
+                    Swal.fire(
+                        'Created!',
+                        'Product has been created.',
+                        'success'
+                    ).then(() => {
+                        table.ajax.reload();
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to create product:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Failed to create product.',
+                        'error'
+                    );
+                }
+            });
         });
 
         // Handle edit button click

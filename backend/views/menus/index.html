@@ -1,0 +1,239 @@
+<!-- backend/views/menus/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menus</title>
+    <link rel="stylesheet" href="/adminlte/css/adminlte.min.css">
+    <link rel="stylesheet" href="/adminlte/plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+</head>
+<body class="hold-transition sidebar-mini">
+    <div class="wrapper">
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Menus</h3>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <table id="menusTable" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Link</th>
+                                            <th>Parent</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Menus will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                    <!-- /.col -->
+                </div>
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </section>
+        <!-- /.content -->
+
+    </div>
+    <!-- ./wrapper -->
+
+    <!-- jQuery -->
+    <script src="/adminlte/plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/adminlte/js/adminlte.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <!-- Custom script -->
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            $('#menusTable').DataTable({
+                processing: true,
+                serverSide: false, // You can set this to true for server-side processing
+                ajax: {
+                    url: '/backend/menus/list',
+                    dataSrc: ''
+                },
+                columns: [
+                    { data: 'id' },
+                    { data: 'name' },
+                    { data: 'link' },
+                    { data: 'parent' },
+                    {
+                        data: null,
+                        render: function (data, type, row) {
+                            return `
+                                <div class="btn-group">
+                                    <button class="btn btn-primary editBtn" data-id="${row.id}" data-name="${row.name}" data-link="${row.link}" data-parent="${row.parent}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger deleteBtn" data-id="${row.id}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                ]
+            });
+
+            // Handle edit button click
+            $('#menusTable').on('click', '.editBtn', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const link = $(this).data('link');
+                const parent = $(this).data('parent');
+
+                $('#editMenuId').val(id);
+                $('#editName').val(name);
+                $('#editLink').val(link);
+                $('#editParent').val(parent);
+
+                $('#editMenuModal').modal('show');
+            });
+
+            // Handle delete button click
+            $('#menusTable').on('click', '.deleteBtn', function () {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You will not be able to recover this menu!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Perform AJAX delete
+                        $.ajax({
+                            url: '/backend/menus/delete',
+                            method: 'POST',
+                            data: { id: id },
+                            success: function (response) {
+                                Swal.fire(
+                                    'Deleted!',
+                                    'Menu has been deleted.',
+                                    'success'
+                                ).then(() => {
+                                    $('#menusTable').DataTable().ajax.reload();
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Failed to delete menu:', error);
+                                Swal.fire(
+                                    'Error!',
+                                    'Failed to delete menu.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Handle form submission for edit menu
+            $('#editMenuForm').submit(function (e) {
+                e.preventDefault();
+                const id = $('#editMenuId').val();
+                const name = $('#editName').val();
+                const link = $('#editLink').val();
+                const parent = $('#editParent').val();
+
+                // Perform AJAX update
+                $.ajax({
+                    url: '/backend/menus/update',
+                    method: 'POST',
+                    data: {
+                        id: id,
+                        name: name,
+                        link: link,
+                        parent: parent
+                    },
+                    success: function (response) {
+                        $('#editMenuModal').modal('hide');
+                        Swal.fire(
+                            'Updated!',
+                            'Menu has been updated.',
+                            'success'
+                        ).then(() => {
+                            $('#menusTable').DataTable().ajax.reload();
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to update menu:', error);
+                        Swal.fire(
+                            'Error!',
+                            'Failed to update menu.',
+                            'error'
+                        );
+                    }
+                });
+            });
+
+            // Show create menu modal
+            $('#showCreateMenuModalBtn').click(function () {
+                $('#createMenuModal').modal('show');
+            });
+
+            // Handle form submission for create menu
+            $('#createMenuForm').submit(function (e) {
+                e.preventDefault();
+                const name = $('#createName').val();
+                const link = $('#createLink').val();
+                const parent = $('#createParent').val();
+
+                // Perform AJAX create
+                $.ajax({
+                    url: '/backend/menus/create',
+                    method: 'POST',
+                    data: {
+                        name: name,
+                        link: link,
+                        parent: parent
+                    },
+                    success: function (response) {
+                        $('#createMenuModal').modal('hide');
+                        Swal.fire(
+                            'Created!',
+                            'Menu has been created.',
+                            'success'
+                        ).then(() => {
+                            $('#menusTable').DataTable().ajax.reload();
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to create menu:', error);
+                        Swal.fire(
+                            'Error!',
+                            'Failed to create menu.',
+                            'error'
+                        );
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
