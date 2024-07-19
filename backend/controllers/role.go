@@ -3,12 +3,37 @@ package controllers
 
 import (
 	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
 
 	"golang-boilerplate/backend/models"
 	"golang-boilerplate/config"
 )
+
+func HandleRoleIndex(w http.ResponseWriter, r *http.Request) {
+	// Parse main layout template and content template
+	tmpl := template.Must(template.ParseFiles(
+		"backend/views/partials/header.html",
+		"backend/views/partials/sidebar.html",
+		"backend/views/partials/footer.html",
+		"backend/views/layouts/main.html",
+		"backend/views/roles/index.html",
+		"backend/views/roles/modals.html",
+	))
+
+	// Data for main layout template
+	data := struct {
+		Title string
+	}{
+		Title: "Roles",
+	}
+
+	// Execute main layout template with data
+	if err := tmpl.ExecuteTemplate(w, "main.html", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
 
 // HandleRoleList handles listing roles.
 func HandleRoleList(w http.ResponseWriter, r *http.Request) {

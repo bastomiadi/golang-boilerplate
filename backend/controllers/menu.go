@@ -3,12 +3,37 @@ package controllers
 
 import (
 	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
 
 	"golang-boilerplate/backend/models"
 	"golang-boilerplate/config"
 )
+
+func HandleMenuIndex(w http.ResponseWriter, r *http.Request) {
+	// Parse main layout template and content template
+	tmpl := template.Must(template.ParseFiles(
+		"backend/views/partials/header.html",
+		"backend/views/partials/sidebar.html",
+		"backend/views/partials/footer.html",
+		"backend/views/layouts/main.html",
+		"backend/views/menus/index.html",
+		"backend/views/menus/modals.html",
+	))
+
+	// Data for main layout template
+	data := struct {
+		Title string
+	}{
+		Title: "Menus",
+	}
+
+	// Execute main layout template with data
+	if err := tmpl.ExecuteTemplate(w, "main.html", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
 
 // HandleMenuList handles listing menus.
 func HandleMenuList(w http.ResponseWriter, r *http.Request) {
@@ -101,4 +126,3 @@ func HandleMenuDelete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Menu deleted successfully"))
 }
-

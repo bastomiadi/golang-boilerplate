@@ -26,23 +26,27 @@ func RegisterBackendRoutes() {
 	http.HandleFunc("/backend/products/update", backendControllers.HandleProductUpdate)
 	http.HandleFunc("/backend/products/delete", backendControllers.HandleProductDelete)
 
+	http.HandleFunc("/backend/users", backendControllers.HandleUserIndex)
 	http.HandleFunc("/backend/users/list", backendControllers.HandleUserList)
 	http.HandleFunc("/backend/users/create", backendControllers.HandleUserCreate)
 	http.HandleFunc("/backend/users/update", backendControllers.HandleUserUpdate)
 	http.HandleFunc("/backend/users/delete", backendControllers.HandleUserDelete)
 
+	http.HandleFunc("/backend/menus", backendControllers.HandleMenuIndex)
 	http.HandleFunc("/backend/menus/list", backendControllers.HandleMenuList)
 	http.HandleFunc("/backend/menus/create", backendControllers.HandleMenuCreate)
 	http.HandleFunc("/backend/menus/update", backendControllers.HandleMenuUpdate)
 	http.HandleFunc("/backend/menus/delete", backendControllers.HandleMenuDelete)
 
-	http.HandleFunc("/backend/roles/list", backendControllers.HandleRoleList)     // Add this line
-	http.HandleFunc("/backend/roles/create", backendControllers.HandleRoleCreate) // Add this line
-	http.HandleFunc("/backend/roles/update", backendControllers.HandleRoleUpdate) // Add this line
-	http.HandleFunc("/backend/roles/delete", backendControllers.HandleRoleDelete) // Add this line
+	http.HandleFunc("/backend/roles", backendControllers.HandleRoleIndex)
+	http.HandleFunc("/backend/roles/list", backendControllers.HandleRoleList)
+	http.HandleFunc("/backend/roles/create", backendControllers.HandleRoleCreate)
+	http.HandleFunc("/backend/roles/update", backendControllers.HandleRoleUpdate)
+	http.HandleFunc("/backend/roles/delete", backendControllers.HandleRoleDelete)
 
-	http.HandleFunc("/backend/permissions/list", backendControllers.HandlePermissionList)     // Add this line
-	http.HandleFunc("/backend/permissions/create", backendControllers.HandlePermissionCreate) // Add this line
-	http.HandleFunc("/backend/permissions/update", backendControllers.HandlePermissionUpdate) // Add this line
-	http.HandleFunc("/backend/permissions/delete", backendControllers.HandlePermissionDelete) // Add this line
+	http.HandleFunc("/backend/permissions", backendControllers.HandlePermissionIndex)
+	http.HandleFunc("/backend/permissions/list", backendControllers.HandlePermissionList)
+	http.HandleFunc("/backend/permissions/create", backendControllers.HandlePermissionCreate)
+	http.HandleFunc("/backend/permissions/update", backendControllers.HandlePermissionUpdate)
+	http.HandleFunc("/backend/permissions/delete", backendControllers.HandlePermissionDelete)
 }

@@ -5,16 +5,16 @@
 {{ define "content" }}
 <div class="row">
     <div class="col-md-12">
-        <button id="showCreateRoleModalBtn" class="btn btn-success mb-3">
-            <i class="fas fa-plus"></i> Create Role
+        <button id="showCreatePermissionModalBtn" class="btn btn-success mb-3">
+            <i class="fas fa-plus"></i> Create Permission
         </button>
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Roles</h3>
+                <h3 class="card-title">Permissions</h3>
             </div>
             <!-- /.card-header -->
             <div class="card-body">
-                <table id="rolesTable" class="table table-bordered table-hover">
+                <table id="permissionsTable" class="table table-bordered table-hover">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -23,7 +23,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Roles will be populated here -->
+                        <!-- Permissions will be populated here -->
                     </tbody>
                 </table>
             </div>
@@ -44,11 +44,11 @@
 <script>
     $(document).ready(function () {
         // Initialize DataTable
-        var table = $('#rolesTable').DataTable({
+        var table = $('#permissionsTable').DataTable({
             processing: true,
             serverSide: false, // You can set this to true for server-side processing
             ajax: {
-                url: '/backend/roles/list',
+                url: '/backend/permissions/list',
                 dataSrc: ''
             },
             columns: [
@@ -72,36 +72,36 @@
             ]
         });
 
-        // Show create role modal
-        $('#showCreateRoleModalBtn').click(function () {
-            $('#createRoleModal').modal('show');
+        // Show create permission modal
+        $('#showCreatePermissionModalBtn').click(function () {
+            $('#createPermissionModal').modal('show');
         });
 
-        // Handle form submission for create role
-        $('#createRoleForm').submit(function (e) {
+        // Handle form submission for create permission
+        $('#createPermissionForm').submit(function (e) {
             e.preventDefault();
-            const name = $('#createRoleName').val();
+            const name = $('#createPermissionName').val();
 
             // Perform AJAX create
             $.ajax({
-                url: '/backend/roles/create',
+                url: '/backend/permissions/create',
                 method: 'POST',
                 data: { name: name },
                 success: function (response) {
-                    $('#createRoleModal').modal('hide');
+                    $('#createPermissionModal').modal('hide');
                     Swal.fire(
                         'Created!',
-                        'Role has been created.',
+                        'Permission has been created.',
                         'success'
                     ).then(() => {
                         table.ajax.reload();
                     });
                 },
                 error: function (xhr, status, error) {
-                    console.error('Failed to create role:', error);
+                    console.error('Failed to create permission:', error);
                     Swal.fire(
                         'Error!',
-                        'Failed to create role.',
+                        'Failed to create permission.',
                         'error'
                     );
                 }
@@ -109,40 +109,44 @@
         });
 
         // Handle edit button click
-        $('#rolesTable').on('click', '.editBtn', function () {
+        $('#permissionsTable').on('click', '.editBtn', function () {
             const id = $(this).data('id');
             const name = $(this).data('name');
-            $('#editRoleId').val(id);
-            $('#editRoleName').val(name);
-            $('#editRoleModal').modal('show');
+
+            // Populate the edit form
+            $('#editPermissionId').val(id);
+            $('#editPermissionName').val(name);
+
+            // Show the edit modal
+            $('#editPermissionModal').modal('show');
         });
 
-        // Handle form submission for edit role
-        $('#editRoleForm').submit(function (e) {
+        // Handle form submission for edit permission
+        $('#editPermissionForm').submit(function (e) {
             e.preventDefault();
-            const id = $('#editRoleId').val();
-            const name = $('#editRoleName').val();
+            const id = $('#editPermissionId').val();
+            const name = $('#editPermissionName').val();
 
             // Perform AJAX update
             $.ajax({
-                url: '/backend/roles/update',
+                url: '/backend/permissions/update',
                 method: 'POST',
                 data: { id: id, name: name },
                 success: function (response) {
-                    $('#editRoleModal').modal('hide');
+                    $('#editPermissionModal').modal('hide');
                     Swal.fire(
                         'Updated!',
-                        'Role has been updated.',
+                        'Permission has been updated.',
                         'success'
                     ).then(() => {
                         table.ajax.reload();
                     });
                 },
                 error: function (xhr, status, error) {
-                    console.error('Failed to update role:', error);
+                    console.error('Failed to update permission:', error);
                     Swal.fire(
                         'Error!',
-                        'Failed to update role.',
+                        'Failed to update permission.',
                         'error'
                     );
                 }
@@ -150,7 +154,7 @@
         });
 
         // Handle delete button click
-        $('#rolesTable').on('click', '.deleteBtn', function () {
+        $('#permissionsTable').on('click', '.deleteBtn', function () {
             const id = $(this).data('id');
             Swal.fire({
                 title: 'Are you sure?',
@@ -164,23 +168,23 @@
                 if (result.isConfirmed) {
                     // Perform AJAX delete
                     $.ajax({
-                        url: '/backend/roles/delete',
+                        url: '/backend/permissions/delete',
                         method: 'POST',
                         data: { id: id },
                         success: function (response) {
                             Swal.fire(
                                 'Deleted!',
-                                'Role has been deleted.',
+                                'Permission has been deleted.',
                                 'success'
                             ).then(() => {
                                 table.ajax.reload();
                             });
                         },
                         error: function (xhr, status, error) {
-                            console.error('Failed to delete role:', error);
+                            console.error('Failed to delete permission:', error);
                             Swal.fire(
                                 'Error!',
-                                'Failed to delete role.',
+                                'Failed to delete permission.',
                                 'error'
                             );
                         }

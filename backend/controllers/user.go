@@ -3,12 +3,37 @@ package controllers
 
 import (
 	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
 
 	"golang-boilerplate/backend/models"
 	"golang-boilerplate/config"
 )
+
+func HandleUserIndex(w http.ResponseWriter, r *http.Request) {
+	// Parse main layout template and content template
+	tmpl := template.Must(template.ParseFiles(
+		"backend/views/partials/header.html",
+		"backend/views/partials/sidebar.html",
+		"backend/views/partials/footer.html",
+		"backend/views/layouts/main.html",
+		"backend/views/users/index.html",
+		"backend/views/users/modals.html",
+	))
+
+	// Data for main layout template
+	data := struct {
+		Title string
+	}{
+		Title: "Users",
+	}
+
+	// Execute main layout template with data
+	if err := tmpl.ExecuteTemplate(w, "main.html", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
 
 // HandleUserList handles listing users.
 func HandleUserList(w http.ResponseWriter, r *http.Request) {
