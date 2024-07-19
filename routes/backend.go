@@ -6,9 +6,11 @@ import (
 )
 
 func RegisterBackendRoutes() {
+
 	http.HandleFunc("/backend/register", backendControllers.HandleRegister)
 	http.HandleFunc("/backend/login", backendControllers.HandleLogin)
 	http.HandleFunc("/backend/dashboard", backendControllers.Dashboard)
+	http.HandleFunc("/backend", backendControllers.Dashboard)
 
 	// Initialize routes categories
 	http.HandleFunc("/backend/categories", backendControllers.HandleCategoryIndex)

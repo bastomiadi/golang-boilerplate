@@ -17,23 +17,9 @@ func main() {
 	db := config.GetDB()
 	defer db.Close()
 
-	// Run migrations
-	migration.CreateCategoriesTable(db)
-	migration.CreateProductsTable(db)
-	migration.CreateUsersTable(db)
-	migration.CreateMenusTable(db)
-	migration.UpdateRolesTable(db)           // Add this line
-	migration.UpdatePermissionsTable(db)     // Add this line
-	migration.CreateRolePermissionsTable(db) // Add this line
-	migration.CreateUserRolesTable(db)       // Add this line
+	migration.Migrate()
 
-	// Run seeders
-	seeder.SeedCategoriesTable(db)
-	seeder.SeedProductsTable(db)
-	seeder.SeedUsersTable(db)
-	seeder.SeedMenusTable(db)
-	seeder.SeedRolesTable(db)       // Add this line
-	seeder.SeedPermissionsTable(db) // Add this line
+	seeder.Seed()
 
 	// Register routes
 	routes.RegisterBackendRoutes()

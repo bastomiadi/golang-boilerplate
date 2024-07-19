@@ -8,10 +8,10 @@ import (
 
 func SeedCategoriesTable(db *sql.DB) {
 	query := `
-    INSERT INTO categories (name) VALUES
-    ('Category 1'),
-    ('Category 2'),
-    ('Category 3');`
+	INSERT INTO categories (name) VALUES
+	('Category 1'),
+	('Category 2'),
+	('Category 3');`
 
 	if _, err := db.Exec(query); err != nil {
 		log.Fatalf("Could not seed categories table: %v", err)

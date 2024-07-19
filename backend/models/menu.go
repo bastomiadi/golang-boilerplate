@@ -1,7 +1,7 @@
 // backend/models/menu.go
 package models
 
-import "database/sql"
+import "golang-boilerplate/config"
 
 type Menu struct {
 	ID           int
@@ -37,45 +37,32 @@ type Menu struct {
 // 	return menus, nil
 // }
 
-func FetchMenus(db *sql.DB) ([]Menu, error) {
-	query := `
-        SELECT id, name, link, parent, icon, display_order
-        FROM menus
-        ORDER BY display_order
-    `
+func GetMenuData() ([]Menu, error) {
 
-	rows, err := db.Query(query)
+	db := config.GetDB()
+
+	rows, err := db.Query("SELECT id, name, link, parent, icon, display_order FROM menus ORDER BY parent, display_order")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// Map to store parent items temporarily
-	menuMap := make(map[int]*Menu)
-	var Menus []Menu
+	var items []Menu
+	itemMap := make(map[int]*Menu)
 
-	// Read rows and populate menu items
 	for rows.Next() {
-		var Menu Menu
-		err := rows.Scan(&Menu.ID, &Menu.Name, &Menu.Link, &Menu.Parent, &Menu.Icon, &Menu.DisplayOrder)
-		if err != nil {
+		var item Menu
+		if err := rows.Scan(&item.ID, &item.Name, &item.Link, &item.Parent, &item.Icon, &item.DisplayOrder); err != nil {
 			return nil, err
 		}
 
-		// Check if parent exists in map, otherwise create it
-		if _, ok := menuMap[Menu.ID]; !ok {
-			menuMap[Menu.ID] = &Menu
+		itemMap[item.ID] = &item
+		if item.Parent == 0 {
+			items = append(items, item)
 		} else {
-			// If parent exists, add as child
-			parent := menuMap[Menu.ID]
-			parent.Children = append(parent.Children, Menu)
-		}
-
-		// Add top-level items to Menus
-		if Menu.Parent == 0 {
-			Menus = append(Menus, Menu)
+			parentItem := itemMap[item.Parent]
+			parentItem.Children = append(parentItem.Children, item)
 		}
 	}
-
-	return Menus, nil
+	return items, nil
 }
