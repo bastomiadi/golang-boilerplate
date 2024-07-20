@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var store = sessions.NewCookieStore([]byte("your-secret-key"))
@@ -25,20 +24,24 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		user, err := models.GetUserByEmail2(db, email)
 		if err != nil {
 			log.Println("Invalid email or password")
+			session.Values["login_error"] = "Invalid email or password"
+			session.Save(r, w)
 			http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
 			return
 		}
 
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-		if err != nil {
+		// Use the CheckPasswordHash function from the utils package
+		if !utils.CheckPasswordHash(password, user.Password) {
 			log.Println("Invalid email or password")
+			session.Values["login_error"] = "Invalid email or password"
+			session.Save(r, w)
 			http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
 			return
 		}
 
 		// Successful login, redirect to dashboard
-		// Authentication successful
 		session.Values["authenticated"] = true
+		delete(session.Values, "login_error")
 		session.Save(r, w)
 		http.Redirect(w, r, "/backend/dashboard", http.StatusSeeOther)
 		return
@@ -50,6 +53,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 func HandleRegister(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
+	session, _ := store.Get(r, "auth")
 
 	if r.Method == http.MethodPost {
 		name := r.FormValue("name")
@@ -57,54 +61,95 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 		passwordConfirmation := r.FormValue("password_confirmation")
+		terms := r.FormValue("terms")
 
-		// Verify and process registration
-		if name != "" && username != "" && email != "" && password != "" && password == passwordConfirmation {
-			hashedPassword, err := utils.HashPassword(password)
-			if err != nil {
-				log.Printf("Error hashing password: %v", err)
-				http.Error(w, "Server error", http.StatusInternalServerError)
-				return
-			}
-
-			// Create user in database
-			err = models.CreateUser(db, username, name, email, hashedPassword)
-			if err != nil {
-				log.Printf("Error creating user: %v", err)
-				http.Error(w, "Server error", http.StatusInternalServerError)
-				return
-			}
-
-			// Redirect to login page on successful registration
-			http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
+		if name == "" || username == "" || email == "" || password == "" || password != passwordConfirmation {
+			session.Values["register_error"] = "All fields are required and passwords must match."
+			session.Save(r, w)
+			http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
 			return
 		}
 
-		// If registration fails, redirect to register page
-		http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
+		if terms != "agree" {
+			session.Values["register_error"] = "You must agree to the terms."
+			session.Save(r, w)
+			http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
+			return
+		}
+
+		hashedPassword, err := utils.HashPassword(password)
+		if err != nil {
+			log.Printf("Error hashing password: %v", err)
+			session.Values["register_error"] = "Server error. Please try again later."
+			session.Save(r, w)
+			http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
+			return
+		}
+
+		err = models.CreateUser(db, username, name, email, hashedPassword)
+		if err != nil {
+			log.Printf("Error creating user: %v", err)
+			session.Values["register_error"] = "Server error. Please try again later."
+			session.Save(r, w)
+			http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
+			return
+		}
+
+		http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
 		return
 	}
 
-	// If not a POST request, show the register page
 	ShowRegisterPage(w, r)
 }
 
 func ShowLoginPage(w http.ResponseWriter, r *http.Request) {
-	tpl, err := template.ParseFiles("backend/views/auth/login.html")
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	session, _ := store.Get(r, "auth")
+	loginError := ""
+	if err, ok := session.Values["login_error"].(string); ok {
+		loginError = err
+		delete(session.Values, "login_error")
+		session.Save(r, w)
 	}
-	tpl.Execute(w, nil)
+
+	tmpl, err := template.ParseFiles("backend/views/auth/login.html")
+	if err != nil {
+		log.Fatalf("Error parsing template: %v", err)
+	}
+
+	data := struct {
+		LoginError string
+	}{
+		LoginError: loginError,
+	}
+
+	if err := tmpl.Execute(w, data); err != nil {
+		log.Fatalf("Error executing template: %v", err)
+	}
 }
 
 func ShowRegisterPage(w http.ResponseWriter, r *http.Request) {
-	tpl, err := template.ParseFiles("backend/views/auth/register.html")
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	session, _ := store.Get(r, "auth")
+	registerError := ""
+	if err, ok := session.Values["register_error"].(string); ok {
+		registerError = err
+		delete(session.Values, "register_error")
+		session.Save(r, w)
 	}
-	tpl.Execute(w, nil)
+
+	tmpl, err := template.ParseFiles("backend/views/auth/register.html")
+	if err != nil {
+		log.Fatalf("Error parsing template: %v", err)
+	}
+
+	data := struct {
+		RegisterError string
+	}{
+		RegisterError: registerError,
+	}
+
+	if err := tmpl.Execute(w, data); err != nil {
+		log.Fatalf("Error executing template: %v", err)
+	}
 }
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {

@@ -9,4 +9,6 @@ import (
 func RegisterFrontendRoutes() {
 	// Define frontend routes here
 	http.HandleFunc("/frontend/", frontendControllers.HandleRequest)
+
+	http.HandleFunc("/", frontendControllers.HandleRequest)
 }

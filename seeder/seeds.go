@@ -13,6 +13,8 @@ func Seed() {
 	SeedProductsTable(db)
 	SeedUsersTable(db)
 	SeedMenusTable(db)
-	SeedRolesTable(db)      
+	SeedRolesTable(db)
 	SeedPermissionsTable(db)
+	SeedUserRolesTable(db)
+	SeedRolePermissionsTable(db)
 }
