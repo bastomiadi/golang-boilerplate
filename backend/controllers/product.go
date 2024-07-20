@@ -13,8 +13,20 @@ import (
 
 // HandleCategoryIndex serves the index.html file for category management
 func HandleProductIndex(w http.ResponseWriter, r *http.Request) {
+
+	// Fetch menu items from the database
+	menuItems, err := models.GetMenuItems()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	// Parse main layout template and content template
-	tmpl := template.Must(template.ParseFiles(
+	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
+		"hasChildren": models.HasChildren,
+		"dict":        models.Dict,
+		"isActive":    models.IsActive,
+	}).ParseFiles(
 		"backend/views/partials/header.html",
 		"backend/views/partials/sidebar.html",
 		"backend/views/partials/footer.html",
@@ -25,9 +37,13 @@ func HandleProductIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Data for main layout template
 	data := struct {
-		Title string
+		Title      string
+		MenuItems  []models.Menu
+		CurrentURL string
 	}{
-		Title: "Products",
+		Title:      "Products",
+		MenuItems:  menuItems,
+		CurrentURL: r.URL.Path,
 	}
 
 	// Execute main layout template with data
