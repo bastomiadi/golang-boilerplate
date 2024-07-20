@@ -7,28 +7,33 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	db := config.GetDB()
+
 	if r.Method == http.MethodPost {
-		email := r.FormValue("username")
+		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		// Example login logic
-		// Verify email and password here, this is a simplified example
-		if email == "test@example.com" && password == "password" {
-			// Successful login, redirect to dashboard
-			http.Redirect(w, r, "/backend/dashboard", http.StatusSeeOther)
+		user, err := models.GetUserByEmail2(db, email)
+		if err != nil {
+			log.Println("Invalid email or password")
+			http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
 			return
 		}
 
-		// If login fails, you can show an error message or redirect to login page
-		http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+		if err != nil {
+			log.Println("Invalid email or password")
+			http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
+			return
+		}
+
+		// Successful login, redirect to dashboard
+		http.Redirect(w, r, "/backend/dashboard", http.StatusSeeOther)
 		return
 	}
 
