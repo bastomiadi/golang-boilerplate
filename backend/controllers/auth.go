@@ -8,11 +8,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 )
 
+var store = sessions.NewCookieStore([]byte("your-secret-key"))
+
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
+	session, _ := store.Get(r, "auth")
 
 	if r.Method == http.MethodPost {
 		email := r.FormValue("email")
@@ -33,6 +37,9 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Successful login, redirect to dashboard
+		// Authentication successful
+		session.Values["authenticated"] = true
+		session.Save(r, w)
 		http.Redirect(w, r, "/backend/dashboard", http.StatusSeeOther)
 		return
 	}
@@ -98,4 +105,13 @@ func ShowRegisterPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tpl.Execute(w, nil)
+}
+
+func HandleLogout(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "auth")
+	// Revoke user authentication
+	session.Values["authenticated"] = false
+	session.Save(r, w)
+	// Redirect to login page
+	http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
 }
