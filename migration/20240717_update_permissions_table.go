@@ -7,14 +7,24 @@ import (
 )
 
 func UpdatePermissionsTable(db *sql.DB) {
-	query := `
+	dropQuery := `
+    DROP TABLE IF EXISTS permissions;
+    `
+	createQuery := `
     CREATE TABLE IF NOT EXISTS permissions (
         id INT AUTO_INCREMENT,
         name VARCHAR(255) NOT NULL,
         PRIMARY KEY (id)
     );`
 
-	if _, err := db.Exec(query); err != nil {
+	// Execute the drop query
+	if _, err := db.Exec(dropQuery); err != nil {
+		log.Fatalf("Could not drop permissions table: %v", err)
+	}
+	log.Println("Dropped permissions table if it existed")
+
+	// Execute the create query
+	if _, err := db.Exec(createQuery); err != nil {
 		log.Fatalf("Could not create permissions table: %v", err)
 	}
 	log.Println("Created permissions table")

@@ -26,7 +26,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		"backend/views/partials/footer.html",
 		"backend/views/layouts/main.html",
 		"backend/views/dashboard/index.html",
-		"backend/views/dashboard/modals.html",
+		"backend/views/categories/modals.html",
 	))
 
 	// Data for main layout template

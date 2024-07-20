@@ -7,7 +7,10 @@ import (
 )
 
 func CreateCategoriesTable(db *sql.DB) {
-	query := `
+	dropQuery := `
+    DROP TABLE IF EXISTS categories;
+    `
+	createQuery := `
     CREATE TABLE IF NOT EXISTS categories (
         id INT AUTO_INCREMENT,
         name VARCHAR(255) NOT NULL,
@@ -15,7 +18,14 @@ func CreateCategoriesTable(db *sql.DB) {
         PRIMARY KEY (id)
     );`
 
-	if _, err := db.Exec(query); err != nil {
+	// Execute the drop query
+	if _, err := db.Exec(dropQuery); err != nil {
+		log.Fatalf("Could not drop categories table: %v", err)
+	}
+	log.Println("Dropped categories table if it existed")
+
+	// Execute the create query
+	if _, err := db.Exec(createQuery); err != nil {
 		log.Fatalf("Could not create categories table: %v", err)
 	}
 	log.Println("Created categories table")

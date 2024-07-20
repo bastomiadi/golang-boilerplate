@@ -12,7 +12,12 @@ func SeedMenusTable(db *sql.DB) {
     ('Dashboard', '/backend/dashboard', 0, '', 0),
     ('Master', '', 0, '', 0),
     ('Categories', '/backend/categories', 2, '', 0),
-    ('Products', '/backend/products', 2, '', 0);`
+    ('Products', '/backend/products', 2, '', 0),
+	('RBAC', '', 0, '', 0),
+	('Users', '/backend/users', 5, '', 0),
+	('Roles', '/backend/roles', 5, '', 0),
+	('Permissions', '/backend/permissions', 5, '', 0),
+	('Menus', '/backend/menus', 5, '', 0);`
 
 	if _, err := db.Exec(query); err != nil {
 		log.Fatalf("Could not seed menus table: %v", err)

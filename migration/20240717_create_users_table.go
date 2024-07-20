@@ -7,7 +7,20 @@ import (
 )
 
 func CreateUsersTable(db *sql.DB) {
-	query := `
+
+	// Drop dependent tables first
+	dropUserRolesTableQuery := `
+    DROP TABLE IF EXISTS user_roles;
+    `
+	if _, err := db.Exec(dropUserRolesTableQuery); err != nil {
+		log.Fatalf("Could not drop user_roles table: %v", err)
+	}
+	log.Println("Dropped user_roles table if it existed")
+
+	dropQuery := `
+    DROP TABLE IF EXISTS users;
+    `
+	createQuery := `
     CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT,
         username VARCHAR(255) NOT NULL,
@@ -18,7 +31,14 @@ func CreateUsersTable(db *sql.DB) {
         PRIMARY KEY (id)
     );`
 
-	if _, err := db.Exec(query); err != nil {
+	// Execute the drop query
+	if _, err := db.Exec(dropQuery); err != nil {
+		log.Fatalf("Could not drop users table: %v", err)
+	}
+	log.Println("Dropped users table if it existed")
+
+	// Execute the create query
+	if _, err := db.Exec(createQuery); err != nil {
 		log.Fatalf("Could not create users table: %v", err)
 	}
 	log.Println("Created users table")

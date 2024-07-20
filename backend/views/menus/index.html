@@ -54,19 +54,19 @@
                 dataSrc: ''
             },
             columns: [
-                { data: 'ID' },
-                { data: 'Name' },
-                { data: 'Link' },
-                { data: 'Parent' },
+                { data: 'id' },
+                { data: 'name' },
+                { data: 'link' },
+                { data: 'parent' },
                 {
                     data: null,
                     render: function (data, type, row) {
                         return `
                             <div class="btn-group">
-                                <button class="btn btn-primary editBtn" data-id="${row.ID}" data-name="${row.Name}" data-link="${row.Link}" data-parent="${row.Parent}">
+                                <button class="btn btn-primary editBtn" data-id="${row.id}" data-name="${row.name}" data-link="${row.link}" data-parent="${row.parent}">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
-                                <button class="btn btn-danger deleteBtn" data-id="${row.ID}">
+                                <button class="btn btn-danger deleteBtn" data-id="${row.id}">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
                             </div>
