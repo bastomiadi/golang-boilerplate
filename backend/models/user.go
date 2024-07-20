@@ -20,8 +20,8 @@ func GetUserByEmail(db *sql.DB, email string) (User, error) {
 	return user, err
 }
 
-func CreateUser(db *sql.DB, name, email, password string) error {
-	_, err := db.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", name, email, password)
+func CreateUser(db *sql.DB, name, username, email, password string) error {
+	_, err := db.Exec("INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)", name, username, email, password)
 	return err
 }
 

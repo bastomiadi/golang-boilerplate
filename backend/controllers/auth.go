@@ -46,14 +46,13 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		name := r.FormValue("name")
+		username := r.FormValue("username")
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 		passwordConfirmation := r.FormValue("password_confirmation")
 
-		// Example registration logic
-		// Verify and process registration, this is a simplified example
-		if name != "" && email != "" && password != "" && password == passwordConfirmation {
-			// Example of hashing password before storing (use your utility function)
+		// Verify and process registration
+		if name != "" && username != "" && email != "" && password != "" && password == passwordConfirmation {
 			hashedPassword, err := utils.HashPassword(password)
 			if err != nil {
 				log.Printf("Error hashing password: %v", err)
@@ -62,7 +61,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Create user in database
-			err = models.CreateUser(db, name, email, hashedPassword)
+			err = models.CreateUser(db, username, name, email, hashedPassword)
 			if err != nil {
 				log.Printf("Error creating user: %v", err)
 				http.Error(w, "Server error", http.StatusInternalServerError)
@@ -74,7 +73,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// If registration fails, you can show an error message or redirect to register page
+		// If registration fails, redirect to register page
 		http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
 		return
 	}
