@@ -7,16 +7,6 @@ import (
 	"strings"
 )
 
-// type Menu struct {
-// 	ID           int    `json:"id"`
-// 	Name         string `json:"name"`
-// 	Link         string `json:"link"`
-// 	Parent       int    `json:"parent"`
-// 	Icon         string `json:"icon"`
-// 	DisplayOrder int    `json:"display_order"`
-// 	SubMenus     []Menu `json:"sub_menus,omitempty"`
-// }
-
 type Menu struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
@@ -25,44 +15,6 @@ type Menu struct {
 	Icon         string `json:"icon"`
 	DisplayOrder int    `json:"display_order"`
 }
-
-// func GetAllMenus() ([]Menu, error) {
-// 	db := config.GetDB()
-
-// 	rows, err := db.Query("SELECT id, name, link, parent, icon, display_order FROM menus ORDER BY display_order")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-
-// 	menuMap := make(map[int]*Menu)
-// 	var menus []Menu
-
-// 	for rows.Next() {
-// 		var menu Menu
-// 		if err := rows.Scan(&menu.ID, &menu.Name, &menu.Link, &menu.Parent, &menu.Icon, &menu.DisplayOrder); err != nil {
-// 			return nil, err
-// 		}
-// 		menuMap[menu.ID] = &menu
-// 		if menu.Parent == 0 {
-// 			menus = append(menus, menu)
-// 		} else {
-// 			parentMenu := menuMap[menu.Parent]
-// 			parentMenu.SubMenus = append(parentMenu.SubMenus, menu)
-// 		}
-// 	}
-
-// 	return menus, nil
-// }
-
-// type MenuItem struct {
-// 	ID           int
-// 	Name         string
-// 	Link         string
-// 	Parent       int
-// 	Icon         string
-// 	DisplayOrder int
-// }
 
 func GetMenuItems() ([]Menu, error) {
 	db := config.GetDB()
