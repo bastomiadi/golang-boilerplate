@@ -18,10 +18,9 @@ func RegisterApiRoutes(router *mux.Router) {
 
 	// categories
 	v1.HandleFunc("/categories", apiV1.GetCategories).Methods("GET")
-	v1.HandleFunc("/categories/{id:[0-9]+}", apiV1.GetCategory).Methods("GET")
-	v1.HandleFunc("/categories", apiV1.CreateCategory).Methods("POST")
-	v1.HandleFunc("/categories/{id:[0-9]+}", apiV1.UpdateCategory).Methods("PUT")
-	v1.HandleFunc("/categories/{id:[0-9]+}", apiV1.DeleteCategory).Methods("DELETE")
+	v1.HandleFunc("/categories/create", apiV1.CreateCategory).Methods("POST")
+	v1.HandleFunc("/categories/update", apiV1.UpdateCategory).Methods("PUT")
+	v1.HandleFunc("/categories/delete", apiV1.DeleteCategory).Methods("DELETE")
 
 	v2 := router.PathPrefix("/api/v2").Subrouter()
 	v2.HandleFunc("/", apiV2.HandleRequest).Methods("GET")

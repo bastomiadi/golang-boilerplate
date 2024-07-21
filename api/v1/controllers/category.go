@@ -1,23 +1,27 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
-	"golang-boilerplate/api/v1/models"
+	models "golang-boilerplate/api/v1/models"
 	"golang-boilerplate/config"
 	"net/http"
 	"strconv"
+	"time"
 )
 
+// Get all categories
 func GetCategories(w http.ResponseWriter, r *http.Request) {
-	rows, err := config.GetDB().Query("SELECT id, name, created_at FROM categories")
+
+	db := config.GetDB()
+
+	rows, err := db.Query("SELECT id, name, created_at FROM categories")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var categories []models.Category
+	categories := make([]models.Category, 0)
 	for rows.Next() {
 		var category models.Category
 		if err := rows.Scan(&category.ID, &category.Name, &category.CreatedAt); err != nil {
@@ -31,35 +35,17 @@ func GetCategories(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(categories)
 }
 
-func GetCategory(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-
-	var category models.Category
-	err = config.GetDB().QueryRow("SELECT id, name, created_at FROM categories WHERE id = ?", id).Scan(&category.ID, &category.Name, &category.CreatedAt)
-	if err == sql.ErrNoRows {
-		http.Error(w, "Category not found", http.StatusNotFound)
-		return
-	} else if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(category)
-}
-
+// Create new category
 func CreateCategory(w http.ResponseWriter, r *http.Request) {
+	db := config.GetDB()
 	var category models.Category
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
-	result, err := config.GetDB().Exec("INSERT INTO categories (name) VALUES (?)", category.Name)
+	result, err := db.Exec("INSERT INTO categories (name, created_at) VALUES (?, ?)", category.Name, time.Now())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -70,49 +56,56 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	category.ID = int(id)
 
+	category.ID = int(id)
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(category)
 }
 
+// Update category by ID
 func UpdateCategory(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
-
+	db := config.GetDB()
 	var category models.Category
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	category.ID = id
+	defer r.Body.Close()
 
-	_, err = config.GetDB().Exec("UPDATE categories SET name = ? WHERE id = ?", category.Name, category.ID)
+	_, err := db.Exec("UPDATE categories SET name = ? WHERE id = ?", category.Name, category.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(category)
+	w.WriteHeader(http.StatusOK)
 }
 
+// Delete category by ID
 func DeleteCategory(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+	db := config.GetDB()
+
+	// Only allow DELETE method
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	_, err = config.GetDB().Exec("DELETE FROM categories WHERE id = ?", id)
+	// Retrieve category ID from query parameter
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	// Execute DELETE query in the database
+	_, err = db.Exec("DELETE FROM categories WHERE id = ?", id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	// Send success response
+	w.WriteHeader(http.StatusOK)
 }
