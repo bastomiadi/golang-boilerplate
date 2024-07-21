@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -17,19 +18,24 @@ func main() {
 	db := config.GetDB()
 	defer db.Close()
 
+	// migration
 	migration.Migrate()
 
+	// seeder
 	seeder.Seed()
 
-	// Register routes
-	routes.RegisterBackendRoutes()
-	routes.RegisterFrontendRoutes()
-	routes.RegisterAPIRoutes()
+	// Initialize mux router
+	router := mux.NewRouter().StrictSlash(true)
+	// Register API routes
+	routes.RegisterApiRoutes(router)
+	// Register backend and frontend routes
+	routes.RegisterBackendRoutes(router)
+	routes.RegisterFrontendRoutes(router)
 
 	// Serve static files
-	http.Handle("/adminlte/", http.StripPrefix("/adminlte/", http.FileServer(http.Dir("public/adminlte"))))
+	router.PathPrefix("/adminlte/").Handler(http.StripPrefix("/adminlte/", http.FileServer(http.Dir("public/adminlte"))))
 
 	// Start server
 	log.Println("Server started on: http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }

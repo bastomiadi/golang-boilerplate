@@ -2,10 +2,12 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 )
 
 func HandleRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "API v2 module")
+	// Your logic for V2 API
+	response := map[string]string{"message": "API V2 Endpoint"}
+	json.NewEncoder(w).Encode(response)
 }

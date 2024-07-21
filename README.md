@@ -26,15 +26,8 @@ Installation
 
 ```bash
 E:\Bastomi\Projects\Golang\project\>git clone https://github.com/bastomiadi/golang-boilerplate.git
-Cloning into 'yii2-boilerplate'...
-remote: Enumerating objects: 702, done.
-remote: Counting objects: 100% (702/702), done.
-remote: Compressing objects: 100% (399/399), done.
-remote: Total 702 (delta 384), reused 574 (delta 256), pack-reused 0Receiving objects:  91% (639/702)
-Receiving objects: 100% (702/702), 276.63 KiB | 3.90 MiB/s, done.
-Resolving deltas: 100% (384/384), done.
-
 ```
+
 **2.** Run development server:
 
 ```bash

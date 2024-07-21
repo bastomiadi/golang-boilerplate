@@ -5,6 +5,7 @@ import (
 	"golang-boilerplate/middleware"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
 
@@ -14,59 +15,58 @@ func protected(handler http.HandlerFunc) http.Handler {
 	return middleware.AuthMiddleware(handler)
 }
 
-func RegisterBackendRoutes() {
-
+func RegisterBackendRoutes(router *mux.Router) {
 	// Set the session store
 	middleware.SetSessionStore(store)
 
 	// Unprotected routes
-	http.HandleFunc("/backend/register", backendControllers.HandleRegister)
-	http.HandleFunc("/backend/login", backendControllers.HandleLogin)
-	http.HandleFunc("/backend/logout", backendControllers.HandleLogout)
+	router.HandleFunc("/backend/register", backendControllers.HandleRegister)
+	router.HandleFunc("/backend/login", backendControllers.HandleLogin)
+	router.HandleFunc("/backend/logout", backendControllers.HandleLogout)
 
 	// Protected routes
-	http.Handle("/backend/dashboard", protected(backendControllers.Dashboard))
-	http.Handle("/backend/", protected(http.HandlerFunc(backendControllers.Dashboard)))
+	router.Handle("/backend/dashboard", protected(backendControllers.Dashboard))
+	router.Handle("/backend/", protected(http.HandlerFunc(backendControllers.Dashboard)))
 
 	// Initialize routes categories
-	http.Handle("/backend/categories", protected(backendControllers.HandleCategoryIndex))
-	http.Handle("/backend/categories/list", protected(backendControllers.HandleCategoryList))
-	http.Handle("/backend/categories/create", protected(backendControllers.HandleCategoryCreate))
-	http.Handle("/backend/categories/update", protected(backendControllers.HandleCategoryUpdate))
-	http.Handle("/backend/categories/delete", protected(backendControllers.HandleCategoryDelete))
+	router.Handle("/backend/categories", protected(backendControllers.HandleCategoryIndex))
+	router.Handle("/backend/categories/list", protected(backendControllers.HandleCategoryList))
+	router.Handle("/backend/categories/create", protected(backendControllers.HandleCategoryCreate))
+	router.Handle("/backend/categories/update", protected(backendControllers.HandleCategoryUpdate))
+	router.Handle("/backend/categories/delete", protected(backendControllers.HandleCategoryDelete))
 
 	// Initialize routes products
-	http.Handle("/backend/products", protected(backendControllers.HandleProductIndex))
-	http.Handle("/backend/products/list", protected(backendControllers.HandleProductList))
-	http.Handle("/backend/products/create", protected(backendControllers.HandleProductCreate))
-	http.Handle("/backend/products/update", protected(backendControllers.HandleProductUpdate))
-	http.Handle("/backend/products/delete", protected(backendControllers.HandleProductDelete))
+	router.Handle("/backend/products", protected(backendControllers.HandleProductIndex))
+	router.Handle("/backend/products/list", protected(backendControllers.HandleProductList))
+	router.Handle("/backend/products/create", protected(backendControllers.HandleProductCreate))
+	router.Handle("/backend/products/update", protected(backendControllers.HandleProductUpdate))
+	router.Handle("/backend/products/delete", protected(backendControllers.HandleProductDelete))
 
 	// Initialize routes users
-	http.Handle("/backend/users", protected(backendControllers.HandleUserIndex))
-	http.Handle("/backend/users/list", protected(backendControllers.HandleUserList))
-	http.Handle("/backend/users/create", protected(backendControllers.HandleUserCreate))
-	http.Handle("/backend/users/update", protected(backendControllers.HandleUserUpdate))
-	http.Handle("/backend/users/delete", protected(backendControllers.HandleUserDelete))
+	router.Handle("/backend/users", protected(backendControllers.HandleUserIndex))
+	router.Handle("/backend/users/list", protected(backendControllers.HandleUserList))
+	router.Handle("/backend/users/create", protected(backendControllers.HandleUserCreate))
+	router.Handle("/backend/users/update", protected(backendControllers.HandleUserUpdate))
+	router.Handle("/backend/users/delete", protected(backendControllers.HandleUserDelete))
 
 	// Initialize routes menus
-	http.Handle("/backend/menus", protected(backendControllers.HandleMenuIndex))
-	http.Handle("/backend/menus/list", protected(backendControllers.HandleMenuList))
-	http.Handle("/backend/menus/create", protected(backendControllers.HandleMenuCreate))
-	http.Handle("/backend/menus/update", protected(backendControllers.HandleMenuUpdate))
-	http.Handle("/backend/menus/delete", protected(backendControllers.HandleMenuDelete))
+	router.Handle("/backend/menus", protected(backendControllers.HandleMenuIndex))
+	router.Handle("/backend/menus/list", protected(backendControllers.HandleMenuList))
+	router.Handle("/backend/menus/create", protected(backendControllers.HandleMenuCreate))
+	router.Handle("/backend/menus/update", protected(backendControllers.HandleMenuUpdate))
+	router.Handle("/backend/menus/delete", protected(backendControllers.HandleMenuDelete))
 
 	// Initialize routes roles
-	http.Handle("/backend/roles", protected(backendControllers.HandleRoleIndex))
-	http.Handle("/backend/roles/list", protected(backendControllers.HandleRoleList))
-	http.Handle("/backend/roles/create", protected(backendControllers.HandleRoleCreate))
-	http.Handle("/backend/roles/update", protected(backendControllers.HandleRoleUpdate))
-	http.Handle("/backend/roles/delete", protected(backendControllers.HandleRoleDelete))
+	router.Handle("/backend/roles", protected(backendControllers.HandleRoleIndex))
+	router.Handle("/backend/roles/list", protected(backendControllers.HandleRoleList))
+	router.Handle("/backend/roles/create", protected(backendControllers.HandleRoleCreate))
+	router.Handle("/backend/roles/update", protected(backendControllers.HandleRoleUpdate))
+	router.Handle("/backend/roles/delete", protected(backendControllers.HandleRoleDelete))
 
 	// Initialize routes permissions
-	http.Handle("/backend/permissions", protected(backendControllers.HandlePermissionIndex))
-	http.Handle("/backend/permissions/list", protected(backendControllers.HandlePermissionList))
-	http.Handle("/backend/permissions/create", protected(backendControllers.HandlePermissionCreate))
-	http.Handle("/backend/permissions/update", protected(backendControllers.HandlePermissionUpdate))
-	http.Handle("/backend/permissions/delete", protected(backendControllers.HandlePermissionDelete))
+	router.Handle("/backend/permissions", protected(backendControllers.HandlePermissionIndex))
+	router.Handle("/backend/permissions/list", protected(backendControllers.HandlePermissionList))
+	router.Handle("/backend/permissions/create", protected(backendControllers.HandlePermissionCreate))
+	router.Handle("/backend/permissions/update", protected(backendControllers.HandlePermissionUpdate))
+	router.Handle("/backend/permissions/delete", protected(backendControllers.HandlePermissionDelete))
 }

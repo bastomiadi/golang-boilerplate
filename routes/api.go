@@ -1,15 +1,21 @@
 package routes
 
 import (
-	apiV1Controllers "golang-boilerplate/api/v1/controllers"
-	apiV2Controllers "golang-boilerplate/api/v2/controllers"
-	"net/http"
+	apiV1 "golang-boilerplate/api/v1/controllers"
+	apiV2 "golang-boilerplate/api/v2/controllers"
+
+	"github.com/gorilla/mux"
 )
 
 // Add your API controllers
+func RegisterApiRoutes(router *mux.Router) {
+	v1 := router.PathPrefix("/api/v1").Subrouter()
+	v1.HandleFunc("/categories", apiV1.GetCategories).Methods("GET")
+	v1.HandleFunc("/categories/{id:[0-9]+}", apiV1.GetCategory).Methods("GET")
+	v1.HandleFunc("/categories", apiV1.CreateCategory).Methods("POST")
+	v1.HandleFunc("/categories/{id:[0-9]+}", apiV1.UpdateCategory).Methods("PUT")
+	v1.HandleFunc("/categories/{id:[0-9]+}", apiV1.DeleteCategory).Methods("DELETE")
 
-func RegisterAPIRoutes() {
-	// Define API routes here
-	http.HandleFunc("/api/v1/", apiV1Controllers.HandleRequest)
-	http.HandleFunc("/api/v2/", apiV2Controllers.HandleRequest)
+	v2 := router.PathPrefix("/api/v2").Subrouter()
+	v2.HandleFunc("/", apiV2.HandleRequest).Methods("GET")
 }

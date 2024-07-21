@@ -2,13 +2,14 @@ package routes
 
 import (
 	frontendControllers "golang-boilerplate/frontend/controllers"
-	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Add your frontend controllers
-func RegisterFrontendRoutes() {
+func RegisterFrontendRoutes(router *mux.Router) {
 	// Define frontend routes here
-	http.HandleFunc("/frontend/", frontendControllers.HandleRequest)
+	router.HandleFunc("/frontend/", frontendControllers.HandleRequest)
 
-	http.HandleFunc("/", frontendControllers.HandleRequest)
+	// router.HandleFunc("/", frontendControllers.HandleRequest)
 }
