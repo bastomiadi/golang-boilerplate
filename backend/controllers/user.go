@@ -9,6 +9,7 @@ import (
 
 	"golang-boilerplate/backend/models"
 	"golang-boilerplate/config"
+	"golang-boilerplate/utils"
 )
 
 func HandleUserIndex(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +94,16 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	_, err := db.Exec("INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)", name, username, email, password)
+	// Hash the password
+	hashedPassword, err := utils.HashPassword(password)
+	if err != nil {
+		log.Fatalf("Failed to hash password: %v", err)
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	// Insert user into the database
+	_, err = db.Exec("INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)", name, username, email, hashedPassword)
 	if err != nil {
 		log.Fatalf("Failed to insert user: %v", err)
 		http.Error(w, "Failed to insert user", http.StatusInternalServerError)
@@ -115,7 +125,28 @@ func HandleUserUpdate(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	_, err := db.Exec("UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?", name, username, email, password, id)
+	// Check if password is provided
+	var query string
+	var args []interface{}
+
+	if password == "" {
+		// If password is blank, update without changing the password
+		query = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?"
+		args = []interface{}{name, username, email, id}
+	} else {
+		// If password is provided, hash it and update including the password
+		hashedPassword, err := utils.HashPassword(password)
+		if err != nil {
+			log.Fatalf("Failed to hash password: %v", err)
+			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+			return
+		}
+		query = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?"
+		args = []interface{}{name, username, email, hashedPassword, id}
+	}
+
+	// Execute the update query
+	_, err := db.Exec(query, args...)
 	if err != nil {
 		log.Fatalf("Failed to update user: %v", err)
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
