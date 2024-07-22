@@ -51,7 +51,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleRegister(w http.ResponseWriter, r *http.Request) {
-
 	session, _ := store.Get(r, "auth")
 
 	if r.Method == http.MethodPost {
@@ -76,16 +75,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hashedPassword, err := utils.HashPassword(password)
-		if err != nil {
-			log.Printf("Error hashing password: %v", err)
-			session.Values["register_error"] = "Server error. Please try again later."
-			session.Save(r, w)
-			http.Redirect(w, r, "/backend/register", http.StatusSeeOther)
-			return
-		}
-
-		err = models.CreateUser(username, name, email, hashedPassword)
+		err := models.CreateUser(username, name, email, password) // Store password directly without hashing
 		if err != nil {
 			log.Printf("Error creating user: %v", err)
 			session.Values["register_error"] = "Server error. Please try again later."

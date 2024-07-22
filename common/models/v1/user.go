@@ -2,8 +2,7 @@ package models
 
 import (
 	"golang-boilerplate/config"
-
-	"golang.org/x/crypto/bcrypt"
+	"golang-boilerplate/utils"
 )
 
 type User struct {
@@ -18,7 +17,7 @@ type User struct {
 func CreateUser(name, username, email, password string) error {
 	db := config.GetDB()
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
 		return err
 	}
