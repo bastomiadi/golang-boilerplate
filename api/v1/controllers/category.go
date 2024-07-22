@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	models "golang-boilerplate/api/v1/models"
+	models "golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 	"net/http"
 	"strconv"
@@ -11,33 +11,26 @@ import (
 
 // Get all categories
 func GetCategories(w http.ResponseWriter, r *http.Request) {
-
 	db := config.GetDB()
 
-	rows, err := db.Query("SELECT id, name, created_at FROM categories")
-	if err != nil {
+	var categories []models.Category
+	// Query categories using GORM
+	if err := db.Select("id, name, created_at").Find(&categories).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	categories := make([]models.Category, 0)
-	for rows.Next() {
-		var category models.Category
-		if err := rows.Scan(&category.ID, &category.Name, &category.CreatedAt); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		categories = append(categories, category)
-	}
-
+	// Set header and encode response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(categories)
+	if err := json.NewEncoder(w).Encode(categories); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // Create new category
 func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
+
 	var category models.Category
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -45,26 +38,26 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	result, err := db.Exec("INSERT INTO categories (name, created_at) VALUES (?, ?)", category.Name, time.Now())
-	if err != nil {
+	// Set created_at to current time
+	category.CreatedAt = time.Now()
+
+	// Create a new category record using GORM
+	if err := db.Create(&category).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	category.ID = int(id)
+	// Set header and encode response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(category)
+	if err := json.NewEncoder(w).Encode(category); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // Update category by ID
 func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
+
 	var category models.Category
 	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -72,8 +65,10 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	_, err := db.Exec("UPDATE categories SET name = ? WHERE id = ?", category.Name, category.ID)
-	if err != nil {
+	// Update the category record using GORM
+	if err := db.Model(&models.Category{}).Where("id = ?", category.ID).Updates(map[string]interface{}{
+		"name": category.Name,
+	}).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -99,9 +94,8 @@ func DeleteCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Execute DELETE query in the database
-	_, err = db.Exec("DELETE FROM categories WHERE id = ?", id)
-	if err != nil {
+	// Execute DELETE query in the database using GORM
+	if err := db.Where("id = ?", id).Delete(&models.Category{}).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

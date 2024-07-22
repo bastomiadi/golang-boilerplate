@@ -1,39 +1,43 @@
-// seeder/20240717_seed_users_table.go
 package seeder
 
 import (
-	"database/sql"
+	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"golang-boilerplate/utils"
 	"log"
 )
 
-func SeedUsersTable(db *sql.DB) {
+func SeedUsersTable() {
+	db := config.GetDB()
 
-	password, _ := utils.HashPassword("password")
+	// Hash the password
+	password, err := utils.HashPassword("password")
+	if err != nil {
+		log.Fatalf("Failed to hash password: %v", err)
+	}
 
-	query := `
-	INSERT INTO users (username, name, email, password) VALUES
-	('admin', 'Admin Account', 'admin@admin.com', ?),
-	('user', 'User Account', 'user@user.com', ?);`
+	// Define initial users
+	users := []models.User{
+		{Username: "admin", Name: "Admin Account", Email: "admin@admin.com", Password: password},
+		{Username: "user", Name: "User Account", Email: "user@user.com", Password: password},
+	}
 
-	if _, err := db.Exec(query, password, password); err != nil {
+	// Perform the seed operation
+	if err := db.Create(&users).Error; err != nil {
 		log.Fatalf("Could not seed users table: %v", err)
 	}
-	log.Println("Seeded users table")
 
+	// Optional: Seed additional users with sample data
 	// for i := 0; i < 10; i++ {
-
 	// 	user := models.User{
 	// 		Username: faker.Username(),
 	// 		Name:     faker.Name(),
 	// 		Email:    faker.Email(),
-	// 		Password: string(password),
+	// 		Password: password,
 	// 	}
 
-	// 	query := `INSERT INTO users (username, name, email, password) VALUES (?, ?, ?, ?)`
-	// 	_, err := db.Exec(query, user.Username, user.Name, user.Email, user.Password)
-	// 	if err != nil {
-	// 		log.Fatalf("Could not seed users table: %v", err)
+	// 	if err := db.Create(&user).Error; err != nil {
+	// 		log.Fatalf("Could not seed additional user: %v", err)
 	// 	}
 	// }
 

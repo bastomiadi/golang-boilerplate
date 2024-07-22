@@ -1,18 +1,18 @@
 package config
 
 import (
-	"database/sql"
 	"log"
 	"os"
 	"sync"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
-	db   *sql.DB
+	db   *gorm.DB
 	once sync.Once
 )
 
@@ -32,12 +32,27 @@ func Connect() {
 			driver = "mysql" // default to MySQL if not specified
 		}
 
-		db, err = sql.Open(driver, dsn)
+		// Initialize the database connection
+		switch driver {
+		case "postgres":
+			db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		case "mysql":
+			db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		default:
+			log.Fatalf("Unsupported database driver: %s", driver)
+		}
+
 		if err != nil {
 			log.Fatalf("Could not connect to the database: %v", err)
 		}
 
-		if err = db.Ping(); err != nil {
+		// Optional: Test the connection
+		sqlDB, err := db.DB()
+		if err != nil {
+			log.Fatalf("Could not get raw database object: %v", err)
+		}
+
+		if err = sqlDB.Ping(); err != nil {
 			log.Fatalf("Could not ping the database: %v", err)
 		}
 
@@ -46,6 +61,6 @@ func Connect() {
 }
 
 // GetDB returns the database connection
-func GetDB() *sql.DB {
+func GetDB() *gorm.DB {
 	return db
 }

@@ -2,19 +2,25 @@
 package seeder
 
 import (
-	"database/sql"
+	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"log"
 )
 
-func SeedCategoriesTable(db *sql.DB) {
-	query := `
-	INSERT INTO categories (name) VALUES
-	('Category 1'),
-	('Category 2'),
-	('Category 3');`
+func SeedCategoriesTable() {
+	db := config.GetDB()
 
-	if _, err := db.Exec(query); err != nil {
+	// Define initial categories
+	categories := []models.Category{
+		{Name: "Category 1"},
+		{Name: "Category 2"},
+		{Name: "Category 3"},
+	}
+
+	// Perform the seed operation
+	if err := db.Create(&categories).Error; err != nil {
 		log.Fatalf("Could not seed categories table: %v", err)
 	}
+
 	log.Println("Seeded categories table")
 }

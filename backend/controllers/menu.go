@@ -6,8 +6,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 )
 
@@ -54,46 +55,51 @@ func HandleMenuIndex(w http.ResponseWriter, r *http.Request) {
 func HandleMenuList(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	menus := []models.Menu{}
+	// Initialize a slice to hold the menu data
+	var menus []models.Menu
 
-	rows, err := db.Query("SELECT id, name, link, parent FROM menus ORDER BY id DESC")
-	if err != nil {
-		log.Fatalf("Failed to query menus: %v", err)
+	// Use GORM to find all menu records, ordered by ID in descending order
+	if err := db.Order("id DESC").Find(&menus).Error; err != nil {
+		log.Printf("Failed to query menus: %v", err)
 		http.Error(w, "Failed to query menus", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var menu models.Menu
-		if err := rows.Scan(&menu.ID, &menu.Name, &menu.Link, &menu.Parent); err != nil {
-			log.Fatalf("Failed to scan menu: %v", err)
-			http.Error(w, "Failed to scan menus", http.StatusInternalServerError)
-			return
-		}
-		menus = append(menus, menu)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Error iterating over rows: %v", err)
-		http.Error(w, "Error iterating over menus", http.StatusInternalServerError)
+	// Encode the menus to JSON and write to the response
+	if err := json.NewEncoder(w).Encode(menus); err != nil {
+		log.Printf("Failed to encode menus to JSON: %v", err)
+		http.Error(w, "Failed to encode menus to JSON", http.StatusInternalServerError)
 		return
 	}
-
-	json.NewEncoder(w).Encode(menus)
 }
 
 // HandleMenuCreate handles creating a new menu.
 func HandleMenuCreate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse form values
 	name := r.FormValue("name")
 	link := r.FormValue("link")
-	parent := r.FormValue("parent")
+	parentStr := r.FormValue("parent")
 
-	_, err := db.Exec("INSERT INTO menus (name, link, parent) VALUES (?, ?, ?)", name, link, parent)
+	// Convert parent to integer
+	parent, err := strconv.Atoi(parentStr)
 	if err != nil {
-		log.Fatalf("Failed to insert menu: %v", err)
+		log.Printf("Invalid parent value: %v", err)
+		http.Error(w, "Invalid parent value", http.StatusBadRequest)
+		return
+	}
+
+	// Create a new menu instance
+	menu := models.Menu{
+		Name:   name,
+		Link:   link,
+		Parent: parent,
+	}
+
+	// Insert the new menu using GORM
+	if err := db.Create(&menu).Error; err != nil {
+		log.Printf("Failed to insert menu: %v", err)
 		http.Error(w, "Failed to insert menu", http.StatusInternalServerError)
 		return
 	}
@@ -107,14 +113,43 @@ func HandleMenuCreate(w http.ResponseWriter, r *http.Request) {
 func HandleMenuUpdate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	id := r.FormValue("id")
+	// Parse form values
+	idStr := r.FormValue("id")
 	name := r.FormValue("name")
 	link := r.FormValue("link")
-	parent := r.FormValue("parent")
+	parentStr := r.FormValue("parent")
 
-	_, err := db.Exec("UPDATE menus SET name = ?, link = ?, parent = ? WHERE id = ?", name, link, parent, id)
+	// Convert id and parent to integers
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Fatalf("Failed to update menu: %v", err)
+		log.Printf("Invalid id value: %v", err)
+		http.Error(w, "Invalid id value", http.StatusBadRequest)
+		return
+	}
+
+	parent, err := strconv.Atoi(parentStr)
+	if err != nil {
+		log.Printf("Invalid parent value: %v", err)
+		http.Error(w, "Invalid parent value", http.StatusBadRequest)
+		return
+	}
+
+	// Find the menu by ID
+	var menu models.Menu
+	if err := db.First(&menu, id).Error; err != nil {
+		log.Printf("Menu not found: %v", err)
+		http.Error(w, "Menu not found", http.StatusNotFound)
+		return
+	}
+
+	// Update the menu fields
+	menu.Name = name
+	menu.Link = link
+	menu.Parent = parent
+
+	// Save the updated menu
+	if err := db.Save(&menu).Error; err != nil {
+		log.Printf("Failed to update menu: %v", err)
 		http.Error(w, "Failed to update menu", http.StatusInternalServerError)
 		return
 	}
@@ -128,11 +163,28 @@ func HandleMenuUpdate(w http.ResponseWriter, r *http.Request) {
 func HandleMenuDelete(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	id := r.FormValue("id")
+	// Parse form value
+	idStr := r.FormValue("id")
 
-	_, err := db.Exec("DELETE FROM menus WHERE id = ?", id)
+	// Convert id to integer
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Fatalf("Failed to delete menu: %v", err)
+		log.Printf("Invalid id value: %v", err)
+		http.Error(w, "Invalid id value", http.StatusBadRequest)
+		return
+	}
+
+	// Find the menu by ID
+	var menu models.Menu
+	if err := db.First(&menu, id).Error; err != nil {
+		log.Printf("Menu not found: %v", err)
+		http.Error(w, "Menu not found", http.StatusNotFound)
+		return
+	}
+
+	// Delete the menu
+	if err := db.Delete(&menu).Error; err != nil {
+		log.Printf("Failed to delete menu: %v", err)
 		http.Error(w, "Failed to delete menu", http.StatusInternalServerError)
 		return
 	}

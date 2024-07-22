@@ -2,18 +2,24 @@
 package seeder
 
 import (
-	"database/sql"
+	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"log"
 )
 
-func SeedRolesTable(db *sql.DB) {
-	query := `
-    INSERT INTO roles (name) VALUES
-    ('Admin'),
-    ('User');`
+func SeedRolesTable() {
+	db := config.GetDB()
 
-	if _, err := db.Exec(query); err != nil {
+	// Define initial roles
+	roles := []models.Role{
+		{Name: "Admin"},
+		{Name: "User"},
+	}
+
+	// Perform the seed operation
+	if err := db.Create(&roles).Error; err != nil {
 		log.Fatalf("Could not seed roles table: %v", err)
 	}
+
 	log.Println("Seeded roles table")
 }

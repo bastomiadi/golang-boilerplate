@@ -2,25 +2,31 @@
 package seeder
 
 import (
-	"database/sql"
+	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"log"
 )
 
-func SeedMenusTable(db *sql.DB) {
-	query := `
-    INSERT INTO menus (name, link, parent, icon, display_order) VALUES
-    ('Dashboard', '/backend/dashboard', 0, '', 0),
-    ('Master', '', 0, '', 0),
-    ('Categories', '/backend/categories', 2, '', 0),
-    ('Products', '/backend/products', 2, '', 0),
-	('RBAC', '', 0, '', 0),
-	('Users', '/backend/users', 5, '', 0),
-	('Roles', '/backend/roles', 5, '', 0),
-	('Permissions', '/backend/permissions', 5, '', 0),
-	('Menus', '/backend/menus', 5, '', 0);`
+func SeedMenusTable() {
+	db := config.GetDB()
 
-	if _, err := db.Exec(query); err != nil {
+	// Define initial menu items
+	menus := []models.Menu{
+		{Name: "Dashboard", Link: "/backend/dashboard", Parent: 0, Icon: "", DisplayOrder: 0},
+		{Name: "Master", Link: "", Parent: 0, Icon: "", DisplayOrder: 0},
+		{Name: "Categories", Link: "/backend/categories", Parent: 2, Icon: "", DisplayOrder: 0},
+		{Name: "Products", Link: "/backend/products", Parent: 2, Icon: "", DisplayOrder: 0},
+		{Name: "RBAC", Link: "", Parent: 0, Icon: "", DisplayOrder: 0},
+		{Name: "Users", Link: "/backend/users", Parent: 5, Icon: "", DisplayOrder: 0},
+		{Name: "Roles", Link: "/backend/roles", Parent: 5, Icon: "", DisplayOrder: 0},
+		{Name: "Permissions", Link: "/backend/permissions", Parent: 5, Icon: "", DisplayOrder: 0},
+		{Name: "Menus", Link: "/backend/menus", Parent: 5, Icon: "", DisplayOrder: 0},
+	}
+
+	// Perform the seed operation
+	if err := db.Create(&menus).Error; err != nil {
 		log.Fatalf("Could not seed menus table: %v", err)
 	}
+
 	log.Println("Seeded menus table")
 }

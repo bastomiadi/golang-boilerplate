@@ -15,8 +15,8 @@ import (
 func main() {
 	// Connect to the database
 	config.Connect()
-	db := config.GetDB()
-	defer db.Close()
+	// db := config.GetDB()
+	// defer db.Close()
 
 	// migration
 	migration.Migrate()

@@ -2,19 +2,25 @@
 package seeder
 
 import (
-	"database/sql"
+	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"log"
 )
 
-func SeedProductsTable(db *sql.DB) {
-	query := `
-    INSERT INTO products (name, price, category) VALUES
-    ('Product 1', 99.99, 'Category 1'),
-    ('Product 2', 49.99, 'Category 2'),
-    ('Product 3', 149.99, 'Category 1');`
+func SeedProductsTable() {
+	db := config.GetDB()
 
-	if _, err := db.Exec(query); err != nil {
+	// Define initial products
+	products := []models.Product{
+		{Name: "Product 1", Price: 99.99, Category: "Category 1"},
+		{Name: "Product 2", Price: 49.99, Category: "Category 2"},
+		{Name: "Product 3", Price: 149.99, Category: "Category 1"},
+	}
+
+	// Perform the seed operation
+	if err := db.Create(&products).Error; err != nil {
 		log.Fatalf("Could not seed products table: %v", err)
 	}
+
 	log.Println("Seeded products table")
 }

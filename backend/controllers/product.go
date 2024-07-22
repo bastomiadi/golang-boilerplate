@@ -4,10 +4,10 @@ package controllers
 import (
 	"encoding/json"
 	"html/template"
-	"log"
 	"net/http"
+	"strconv"
 
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 )
 
@@ -56,46 +56,47 @@ func HandleProductIndex(w http.ResponseWriter, r *http.Request) {
 func HandleProductList(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	products := []models.Product{}
+	var products []models.Product
 
-	rows, err := db.Query("SELECT id, name, price, category FROM products ORDER BY id DESC")
-	if err != nil {
-		log.Fatalf("Failed to query products: %v", err)
+	// Fetch all products ordered by ID in descending order
+	if err := db.Order("id desc").Find(&products).Error; err != nil {
 		http.Error(w, "Failed to query products", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var product models.Product
-		if err := rows.Scan(&product.ID, &product.Name, &product.Price, &product.Category); err != nil {
-			log.Fatalf("Failed to scan product: %v", err)
-			http.Error(w, "Failed to scan products", http.StatusInternalServerError)
-			return
-		}
-		products = append(products, product)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Error iterating over rows: %v", err)
-		http.Error(w, "Error iterating over products", http.StatusInternalServerError)
+	// Encode the products to JSON and write the response
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(products); err != nil {
+		http.Error(w, "Failed to encode products", http.StatusInternalServerError)
 		return
 	}
-
-	json.NewEncoder(w).Encode(products)
 }
 
 // HandleProductCreate handles creating a new product.
 func HandleProductCreate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse form values
 	name := r.FormValue("name")
-	price := r.FormValue("price")
+	priceStr := r.FormValue("price")
 	category := r.FormValue("category")
 
-	_, err := db.Exec("INSERT INTO products (name, price, category) VALUES (?, ?, ?)", name, price, category)
+	// Convert price to float64
+	price, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
-		log.Fatalf("Failed to insert product: %v", err)
+		http.Error(w, "Invalid price format", http.StatusBadRequest)
+		return
+	}
+
+	// Create a new product instance
+	product := models.Product{
+		Name:     name,
+		Price:    price,
+		Category: category,
+	}
+
+	// Insert the new product into the database
+	if err := db.Create(&product).Error; err != nil {
 		http.Error(w, "Failed to insert product", http.StatusInternalServerError)
 		return
 	}
@@ -109,14 +110,36 @@ func HandleProductCreate(w http.ResponseWriter, r *http.Request) {
 func HandleProductUpdate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	id := r.FormValue("id")
+	// Parse form values
+	idStr := r.FormValue("id")
 	name := r.FormValue("name")
-	price := r.FormValue("price")
+	priceStr := r.FormValue("price")
 	category := r.FormValue("category")
 
-	_, err := db.Exec("UPDATE products SET name = ?, price = ?, category = ? WHERE id = ?", name, price, category, id)
+	// Convert id to int
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Fatalf("Failed to update product: %v", err)
+		http.Error(w, "Invalid product ID format", http.StatusBadRequest)
+		return
+	}
+
+	// Convert price to float64
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		http.Error(w, "Invalid price format", http.StatusBadRequest)
+		return
+	}
+
+	// Create a product instance with the new values
+	product := models.Product{
+		ID:       id,
+		Name:     name,
+		Price:    price,
+		Category: category,
+	}
+
+	// Update the product in the database
+	if err := db.Model(&product).Updates(product).Error; err != nil {
 		http.Error(w, "Failed to update product", http.StatusInternalServerError)
 		return
 	}
@@ -130,11 +153,21 @@ func HandleProductUpdate(w http.ResponseWriter, r *http.Request) {
 func HandleProductDelete(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	id := r.FormValue("id")
+	// Get the product ID from the request
+	idStr := r.FormValue("id")
 
-	_, err := db.Exec("DELETE FROM products WHERE id = ?", id)
+	// Convert the ID from string to int
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Fatalf("Failed to delete product: %v", err)
+		http.Error(w, "Invalid product ID format", http.StatusBadRequest)
+		return
+	}
+
+	// Create an instance of the product with the given ID
+	product := models.Product{ID: id}
+
+	// Delete the product from the database
+	if err := db.Delete(&product).Error; err != nil {
 		http.Error(w, "Failed to delete product", http.StatusInternalServerError)
 		return
 	}

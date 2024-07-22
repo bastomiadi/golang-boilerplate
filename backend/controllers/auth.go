@@ -1,8 +1,7 @@
 package controllers
 
 import (
-	"golang-boilerplate/backend/models"
-	"golang-boilerplate/config"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/utils"
 	"html/template"
 	"log"
@@ -14,14 +13,14 @@ import (
 var store = sessions.NewCookieStore([]byte("your-secret-key"))
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	db := config.GetDB()
+
 	session, _ := store.Get(r, "auth")
 
 	if r.Method == http.MethodPost {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		user, err := models.GetUserByEmail2(db, email)
+		user, err := models.GetUserByEmail(email)
 		if err != nil {
 			log.Println("Invalid email or password")
 			session.Values["login_error"] = "Invalid email or password"
@@ -52,7 +51,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleRegister(w http.ResponseWriter, r *http.Request) {
-	db := config.GetDB()
+
 	session, _ := store.Get(r, "auth")
 
 	if r.Method == http.MethodPost {
@@ -86,7 +85,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = models.CreateUser(db, username, name, email, hashedPassword)
+		err = models.CreateUser(username, name, email, hashedPassword)
 		if err != nil {
 			log.Printf("Error creating user: %v", err)
 			session.Values["register_error"] = "Server error. Please try again later."

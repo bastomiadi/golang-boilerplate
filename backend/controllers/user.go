@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 	"golang-boilerplate/utils"
 )
@@ -56,33 +56,18 @@ func HandleUserIndex(w http.ResponseWriter, r *http.Request) {
 func HandleUserList(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	users := []models.User{}
+	var users []models.User
 
-	rows, err := db.Query("SELECT id, name, username, email FROM users ORDER BY id DESC")
-	if err != nil {
-		log.Fatalf("Failed to query users: %v", err)
+	// Fetch users from the database using GORM
+	if err := db.Order("id desc").Find(&users).Error; err != nil {
 		http.Error(w, "Failed to query users", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(&user.ID, &user.Name, &user.Username, &user.Email); err != nil {
-			log.Fatalf("Failed to scan user: %v", err)
-			http.Error(w, "Failed to scan users", http.StatusInternalServerError)
-			return
-		}
-		users = append(users, user)
+	// Return users as JSON response
+	if err := json.NewEncoder(w).Encode(users); err != nil {
+		http.Error(w, "Failed to encode users", http.StatusInternalServerError)
 	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Error iterating over rows: %v", err)
-		http.Error(w, "Error iterating over users", http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(users)
 }
 
 // HandleUserCreate handles creating a new user.
@@ -97,15 +82,20 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	// Hash the password
 	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
-		log.Fatalf("Failed to hash password: %v", err)
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 		return
 	}
 
-	// Insert user into the database
-	_, err = db.Exec("INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)", name, username, email, hashedPassword)
-	if err != nil {
-		log.Fatalf("Failed to insert user: %v", err)
+	// Create a new user instance
+	user := models.User{
+		Name:     name,
+		Username: username,
+		Email:    email,
+		Password: hashedPassword,
+	}
+
+	// Insert user into the database using GORM
+	if err := db.Create(&user).Error; err != nil {
 		http.Error(w, "Failed to insert user", http.StatusInternalServerError)
 		return
 	}
@@ -119,36 +109,37 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 func HandleUserUpdate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse form values
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+
 	id := r.FormValue("id")
 	name := r.FormValue("name")
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	// Check if password is provided
-	var query string
-	var args []interface{}
+	// Create a map of fields to update
+	updateFields := map[string]interface{}{
+		"name":     name,
+		"username": username,
+		"email":    email,
+	}
 
-	if password == "" {
-		// If password is blank, update without changing the password
-		query = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?"
-		args = []interface{}{name, username, email, id}
-	} else {
-		// If password is provided, hash it and update including the password
+	// If a password is provided, hash it and include it in the update
+	if password != "" {
 		hashedPassword, err := utils.HashPassword(password)
 		if err != nil {
-			log.Fatalf("Failed to hash password: %v", err)
 			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 			return
 		}
-		query = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?"
-		args = []interface{}{name, username, email, hashedPassword, id}
+		updateFields["password"] = hashedPassword
 	}
 
-	// Execute the update query
-	_, err := db.Exec(query, args...)
-	if err != nil {
-		log.Fatalf("Failed to update user: %v", err)
+	// Perform the update using GORM
+	if err := db.Model(&models.User{}).Where("id = ?", id).Updates(updateFields).Error; err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
 		return
 	}
@@ -162,11 +153,20 @@ func HandleUserUpdate(w http.ResponseWriter, r *http.Request) {
 func HandleUserDelete(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse form values
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+
 	id := r.FormValue("id")
 
-	_, err := db.Exec("DELETE FROM users WHERE id = ?", id)
-	if err != nil {
-		log.Fatalf("Failed to delete user: %v", err)
+	// Create a new User instance for GORM
+	var user models.User
+
+	// Perform the delete operation using GORM
+	if err := db.Where("id = ?", id).Delete(&user).Error; err != nil {
+		log.Printf("Failed to delete user: %v", err)
 		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}

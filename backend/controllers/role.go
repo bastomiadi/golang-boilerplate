@@ -4,10 +4,9 @@ package controllers
 import (
 	"encoding/json"
 	"html/template"
-	"log"
 	"net/http"
 
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 )
 
@@ -55,44 +54,34 @@ func HandleRoleIndex(w http.ResponseWriter, r *http.Request) {
 func HandleRoleList(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Define a slice to hold roles
 	roles := []models.Role{}
 
-	rows, err := db.Query("SELECT id, name FROM roles ORDER BY id DESC")
-	if err != nil {
-		log.Fatalf("Failed to query roles: %v", err)
+	// Query roles from the database
+	if err := db.Order("id desc").Find(&roles).Error; err != nil {
 		http.Error(w, "Failed to query roles", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var role models.Role
-		if err := rows.Scan(&role.ID, &role.Name); err != nil {
-			log.Fatalf("Failed to scan role: %v", err)
-			http.Error(w, "Failed to scan roles", http.StatusInternalServerError)
-			return
-		}
-		roles = append(roles, role)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Error iterating over rows: %v", err)
-		http.Error(w, "Error iterating over roles", http.StatusInternalServerError)
+	// Encode roles as JSON and send the response
+	if err := json.NewEncoder(w).Encode(roles); err != nil {
+		http.Error(w, "Failed to encode roles", http.StatusInternalServerError)
 		return
 	}
-
-	json.NewEncoder(w).Encode(roles)
 }
 
 // HandleRoleCreate handles creating a new role.
 func HandleRoleCreate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Retrieve form value for the role name
 	name := r.FormValue("name")
 
-	_, err := db.Exec("INSERT INTO roles (name) VALUES (?)", name)
-	if err != nil {
-		log.Fatalf("Failed to insert role: %v", err)
+	// Create a new role instance
+	role := models.Role{Name: name}
+
+	// Insert the new role into the database
+	if err := db.Create(&role).Error; err != nil {
 		http.Error(w, "Failed to insert role", http.StatusInternalServerError)
 		return
 	}
@@ -106,12 +95,20 @@ func HandleRoleCreate(w http.ResponseWriter, r *http.Request) {
 func HandleRoleUpdate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Retrieve form values for the role ID and name
 	id := r.FormValue("id")
 	name := r.FormValue("name")
 
-	_, err := db.Exec("UPDATE roles SET name = ? WHERE id = ?", name, id)
-	if err != nil {
-		log.Fatalf("Failed to update role: %v", err)
+	// Find the role by ID
+	var role models.Role
+	if err := db.First(&role, id).Error; err != nil {
+		http.Error(w, "Role not found", http.StatusNotFound)
+		return
+	}
+
+	// Update the role's name
+	role.Name = name
+	if err := db.Save(&role).Error; err != nil {
 		http.Error(w, "Failed to update role", http.StatusInternalServerError)
 		return
 	}
@@ -125,11 +122,11 @@ func HandleRoleUpdate(w http.ResponseWriter, r *http.Request) {
 func HandleRoleDelete(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Retrieve form value for the role ID
 	id := r.FormValue("id")
 
-	_, err := db.Exec("DELETE FROM roles WHERE id = ?", id)
-	if err != nil {
-		log.Fatalf("Failed to delete role: %v", err)
+	// Delete the role by ID
+	if err := db.Delete(&models.Role{}, id).Error; err != nil {
 		http.Error(w, "Failed to delete role", http.StatusInternalServerError)
 		return
 	}

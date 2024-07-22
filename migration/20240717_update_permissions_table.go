@@ -2,30 +2,23 @@
 package migration
 
 import (
-	"database/sql"
+	models "golang-boilerplate/common/models/v1"
 	"log"
+
+	"gorm.io/gorm"
 )
 
-func UpdatePermissionsTable(db *sql.DB) {
-	dropQuery := `
-    DROP TABLE IF EXISTS permissions;
-    `
-	createQuery := `
-    CREATE TABLE IF NOT EXISTS permissions (
-        id INT AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        PRIMARY KEY (id)
-    );`
+func UpdatePermissionsTable(db *gorm.DB) {
 
-	// Execute the drop query
-	if _, err := db.Exec(dropQuery); err != nil {
+	// Drop the table if it exists
+	if err := db.Migrator().DropTable(&models.Permission{}); err != nil {
 		log.Fatalf("Could not drop permissions table: %v", err)
 	}
 	log.Println("Dropped permissions table if it existed")
 
-	// Execute the create query
-	if _, err := db.Exec(createQuery); err != nil {
-		log.Fatalf("Could not create permissions table: %v", err)
+	// Perform the migration
+	if err := db.AutoMigrate(&models.Permission{}); err != nil {
+		log.Fatalf("Could not migrate permissions table: %v", err)
 	}
-	log.Println("Created permissions table")
+	log.Println("Migrated permissions table")
 }

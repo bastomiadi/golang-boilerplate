@@ -2,18 +2,24 @@
 package seeder
 
 import (
-	"database/sql"
+	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"log"
 )
 
-func SeedRolePermissionsTable(db *sql.DB) {
-	query := `
-    INSERT INTO role_permissions (role_id, permission_id) VALUES
-    (1, 1),
-    (2, 2);`
+func SeedRolePermissionsTable() {
+	db := config.GetDB()
 
-	if _, err := db.Exec(query); err != nil {
-		log.Fatalf("Could not seed role permissions table: %v", err)
+	// Define initial role permissions
+	rolePermissions := []models.RolePermission{
+		{RoleID: 1, PermissionID: 1},
+		{RoleID: 2, PermissionID: 2},
 	}
-	log.Println("Seeded role permissions table")
+
+	// Perform the seed operation
+	if err := db.Create(&rolePermissions).Error; err != nil {
+		log.Fatalf("Could not seed role_permissions table: %v", err)
+	}
+
+	log.Println("Seeded role_permissions table")
 }

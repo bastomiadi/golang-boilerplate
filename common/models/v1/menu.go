@@ -1,4 +1,3 @@
-// backend/models/menu.go
 package models
 
 import (
@@ -8,33 +7,27 @@ import (
 )
 
 type Menu struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	Link         string `json:"link"`
-	Parent       int    `json:"parent"`
-	Icon         string `json:"icon"`
-	DisplayOrder int    `json:"display_order"`
+	ID           int    `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name         string `gorm:"type:varchar(255);not null" json:"name"`
+	Link         string `gorm:"type:varchar(255)" json:"link"`
+	Parent       int    `gorm:"default:0" json:"parent"`
+	Icon         string `gorm:"type:varchar(255)" json:"icon"`
+	DisplayOrder int    `gorm:"default:0" json:"display_order"`
 }
 
+// GetMenuItems retrieves menu items ordered by parent and display order using GORM
 func GetMenuItems() ([]Menu, error) {
 	db := config.GetDB()
-	rows, err := db.Query("SELECT id, name, link, parent, icon, display_order FROM menus ORDER BY parent, display_order")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
 
 	var menuItems []Menu
-	for rows.Next() {
-		var menuItem Menu
-		if err := rows.Scan(&menuItem.ID, &menuItem.Name, &menuItem.Link, &menuItem.Parent, &menuItem.Icon, &menuItem.DisplayOrder); err != nil {
-			return nil, err
-		}
-		menuItems = append(menuItems, menuItem)
+	if err := db.Order("parent, display_order").Find(&menuItems).Error; err != nil {
+		return nil, err
 	}
+
 	return menuItems, nil
 }
 
+// HasChildren checks if there are any menu items with the specified parent ID
 func HasChildren(menuItems []Menu, parentID int) bool {
 	for _, menuItem := range menuItems {
 		if menuItem.Parent == parentID {
@@ -44,11 +37,12 @@ func HasChildren(menuItems []Menu, parentID int) bool {
 	return false
 }
 
+// IsActive checks if the current URL matches the item URL
 func IsActive(currentURL, itemURL string) bool {
 	return strings.Trim(currentURL, "/") == strings.Trim(itemURL, "/")
 }
 
-// Custom function to create a dictionary
+// Dict creates a dictionary from key-value pairs
 func Dict(values ...interface{}) (map[string]interface{}, error) {
 	if len(values)%2 != 0 {
 		return nil, fmt.Errorf("invalid dict call: missing key or value")

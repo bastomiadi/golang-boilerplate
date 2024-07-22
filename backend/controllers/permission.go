@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 )
 
@@ -55,33 +55,20 @@ func HandlePermissionIndex(w http.ResponseWriter, r *http.Request) {
 func HandlePermissionList(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	permissions := []models.Permission{}
+	var permissions []models.Permission
 
-	rows, err := db.Query("SELECT id, name FROM permissions ORDER BY id DESC")
-	if err != nil {
-		log.Fatalf("Failed to query permissions: %v", err)
+	// Use GORM to find all permissions, ordered by ID descending
+	if err := db.Order("id desc").Find(&permissions).Error; err != nil {
+		log.Printf("Failed to query permissions: %v", err)
 		http.Error(w, "Failed to query permissions", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var permission models.Permission
-		if err := rows.Scan(&permission.ID, &permission.Name); err != nil {
-			log.Fatalf("Failed to scan permission: %v", err)
-			http.Error(w, "Failed to scan permissions", http.StatusInternalServerError)
-			return
-		}
-		permissions = append(permissions, permission)
+	// Encode the result to JSON and send it back
+	if err := json.NewEncoder(w).Encode(permissions); err != nil {
+		log.Printf("Failed to encode permissions to JSON: %v", err)
+		http.Error(w, "Failed to encode permissions", http.StatusInternalServerError)
 	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Error iterating over rows: %v", err)
-		http.Error(w, "Error iterating over permissions", http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(permissions)
 }
 
 // HandlePermissionCreate handles creating a new permission.
@@ -90,9 +77,11 @@ func HandlePermissionCreate(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 
-	_, err := db.Exec("INSERT INTO permissions (name) VALUES (?)", name)
-	if err != nil {
-		log.Fatalf("Failed to insert permission: %v", err)
+	// Create a new Permission instance
+	permission := models.Permission{Name: name}
+
+	// Use GORM to insert the new permission record
+	if err := db.Create(&permission).Error; err != nil {
 		http.Error(w, "Failed to insert permission", http.StatusInternalServerError)
 		return
 	}
@@ -109,9 +98,20 @@ func HandlePermissionUpdate(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	name := r.FormValue("name")
 
-	_, err := db.Exec("UPDATE permissions SET name = ? WHERE id = ?", name, id)
-	if err != nil {
-		log.Fatalf("Failed to update permission: %v", err)
+	// Create a new Permission instance with the provided ID
+	var permission models.Permission
+
+	// Find the permission by ID
+	if err := db.First(&permission, id).Error; err != nil {
+		http.Error(w, "Permission not found", http.StatusNotFound)
+		return
+	}
+
+	// Update the permission's name
+	permission.Name = name
+
+	// Save the updated permission record
+	if err := db.Save(&permission).Error; err != nil {
 		http.Error(w, "Failed to update permission", http.StatusInternalServerError)
 		return
 	}
@@ -127,9 +127,17 @@ func HandlePermissionDelete(w http.ResponseWriter, r *http.Request) {
 
 	id := r.FormValue("id")
 
-	_, err := db.Exec("DELETE FROM permissions WHERE id = ?", id)
-	if err != nil {
-		log.Fatalf("Failed to delete permission: %v", err)
+	// Create a new Permission instance with the provided ID
+	var permission models.Permission
+
+	// Find the permission by ID
+	if err := db.First(&permission, id).Error; err != nil {
+		http.Error(w, "Permission not found", http.StatusNotFound)
+		return
+	}
+
+	// Delete the permission
+	if err := db.Delete(&permission).Error; err != nil {
 		http.Error(w, "Failed to delete permission", http.StatusInternalServerError)
 		return
 	}

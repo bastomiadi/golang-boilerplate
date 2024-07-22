@@ -2,32 +2,22 @@
 package migration
 
 import (
-	"database/sql"
 	"log"
+
+	models "golang-boilerplate/common/models/v1"
+
+	"gorm.io/gorm"
 )
 
-func CreateProductsTable(db *sql.DB) {
-	dropQuery := `
-    DROP TABLE IF EXISTS products;
-    `
-	createQuery := `
-    CREATE TABLE IF NOT EXISTS products (
-        id INT AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        price DECIMAL(10, 2) NOT NULL,
-        category VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    );`
-
-	// Execute the drop query
-	if _, err := db.Exec(dropQuery); err != nil {
+func CreateProductsTable(db *gorm.DB) {
+	// Drop the table if it exists
+	if err := db.Migrator().DropTable(&models.Product{}); err != nil {
 		log.Fatalf("Could not drop products table: %v", err)
 	}
 	log.Println("Dropped products table if it existed")
 
-	// Execute the create query
-	if _, err := db.Exec(createQuery); err != nil {
+	// Create the table
+	if err := db.AutoMigrate(&models.Product{}); err != nil {
 		log.Fatalf("Could not create products table: %v", err)
 	}
 	log.Println("Created products table")

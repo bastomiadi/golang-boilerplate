@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"html/template"
 	"net/http"
 )

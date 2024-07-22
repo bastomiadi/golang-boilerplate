@@ -3,7 +3,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"golang-boilerplate/backend/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 	"html/template"
 	"log"
@@ -54,44 +54,43 @@ func HandleCategoryIndex(w http.ResponseWriter, r *http.Request) {
 func HandleCategoryList(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
-	categories := []models.Category{}
+	var categories []models.Category
 
-	rows, err := db.Query("SELECT id, name FROM categories ORDER BY id DESC")
-	if err != nil {
-		log.Fatalf("Failed to query categories: %v", err)
+	// Query categories using GORM
+	if err := db.Order("id desc").Find(&categories).Error; err != nil {
+		log.Printf("Failed to query categories: %v", err)
 		http.Error(w, "Failed to query categories", http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var category models.Category
-		if err := rows.Scan(&category.ID, &category.Name); err != nil {
-			log.Fatalf("Failed to scan category: %v", err)
-			http.Error(w, "Failed to scan categories", http.StatusInternalServerError)
-			return
-		}
-		categories = append(categories, category)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Error iterating over rows: %v", err)
-		http.Error(w, "Error iterating over categories", http.StatusInternalServerError)
+	// Encode categories to JSON and send the response
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(categories); err != nil {
+		log.Printf("Failed to encode categories to JSON: %v", err)
+		http.Error(w, "Failed to encode categories", http.StatusInternalServerError)
 		return
 	}
-
-	json.NewEncoder(w).Encode(categories)
 }
 
 // HandleCategoryCreate handles creating a new category.
 func HandleCategoryCreate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse the request form values
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Failed to parse form values: %v", err)
+		http.Error(w, "Failed to parse form values", http.StatusBadRequest)
+		return
+	}
+
 	name := r.FormValue("name")
 
-	_, err := db.Exec("INSERT INTO categories (name) VALUES (?)", name)
-	if err != nil {
-		log.Fatalf("Failed to insert category: %v", err)
+	// Create a new category instance
+	category := models.Category{Name: name}
+
+	// Save the category to the database using GORM
+	if err := db.Create(&category).Error; err != nil {
+		log.Printf("Failed to insert category: %v", err)
 		http.Error(w, "Failed to insert category", http.StatusInternalServerError)
 		return
 	}
@@ -105,12 +104,30 @@ func HandleCategoryCreate(w http.ResponseWriter, r *http.Request) {
 func HandleCategoryUpdate(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse the request form values
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Failed to parse form values: %v", err)
+		http.Error(w, "Failed to parse form values", http.StatusBadRequest)
+		return
+	}
+
 	id := r.FormValue("id")
 	name := r.FormValue("name")
 
-	_, err := db.Exec("UPDATE categories SET name = ? WHERE id = ?", name, id)
-	if err != nil {
-		log.Fatalf("Failed to update category: %v", err)
+	// Find the category by ID
+	var category models.Category
+	if err := db.First(&category, id).Error; err != nil {
+		log.Printf("Failed to find category: %v", err)
+		http.Error(w, "Category not found", http.StatusNotFound)
+		return
+	}
+
+	// Update the category's name
+	category.Name = name
+
+	// Save the updated category to the database using GORM
+	if err := db.Save(&category).Error; err != nil {
+		log.Printf("Failed to update category: %v", err)
 		http.Error(w, "Failed to update category", http.StatusInternalServerError)
 		return
 	}
@@ -124,11 +141,26 @@ func HandleCategoryUpdate(w http.ResponseWriter, r *http.Request) {
 func HandleCategoryDelete(w http.ResponseWriter, r *http.Request) {
 	db := config.GetDB()
 
+	// Parse the request form values
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Failed to parse form values: %v", err)
+		http.Error(w, "Failed to parse form values", http.StatusBadRequest)
+		return
+	}
+
 	id := r.FormValue("id")
 
-	_, err := db.Exec("DELETE FROM categories WHERE id = ?", id)
-	if err != nil {
-		log.Fatalf("Failed to delete category: %v", err)
+	// Find the category by ID
+	var category models.Category
+	if err := db.First(&category, id).Error; err != nil {
+		log.Printf("Failed to find category: %v", err)
+		http.Error(w, "Category not found", http.StatusNotFound)
+		return
+	}
+
+	// Delete the category from the database using GORM
+	if err := db.Delete(&category).Error; err != nil {
+		log.Printf("Failed to delete category: %v", err)
 		http.Error(w, "Failed to delete category", http.StatusInternalServerError)
 		return
 	}

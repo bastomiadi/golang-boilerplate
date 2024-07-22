@@ -1,16 +1,16 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
 
-	"golang-boilerplate/api/v1/models"
+	"golang-boilerplate/common/models/v1"
 	"golang-boilerplate/config"
 	"golang-boilerplate/utils"
 
 	"github.com/golang-jwt/jwt"
+	"gorm.io/gorm"
 )
 
 var jwtKey = []byte("my_secret_key")
@@ -34,6 +34,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Hash the password
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -41,15 +42,18 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Password = hashedPassword
 
-	insertUserQuery := `INSERT INTO users (username, name, email, password) VALUES (?, ?, ?, ?)`
-	_, err = db.Exec(insertUserQuery, user.Username, user.Name, user.Email, user.Password)
-	if err != nil {
+	// Insert user record using GORM
+	if err := db.Create(&user).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Set response headers and encode user data
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -62,21 +66,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user models.User
-	selectUserQuery := `SELECT id, email, password FROM users WHERE email = ?`
-	err := db.QueryRow(selectUserQuery, creds.Email).Scan(&user.ID, &user.Email, &user.Password)
-	if err == sql.ErrNoRows {
-		http.Error(w, "user not found", http.StatusUnauthorized)
-		return
-	} else if err != nil {
+	// Query the user by email using GORM
+	if err := db.Select("id, email, password").Where("email = ?", creds.Email).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			http.Error(w, "user not found", http.StatusUnauthorized)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Check the password
 	if !utils.CheckPasswordHash(creds.Password, user.Password) {
 		http.Error(w, "invalid password", http.StatusUnauthorized)
 		return
 	}
 
+	// Generate JWT token
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{
 		Email: creds.Email,
@@ -92,6 +98,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set cookie and response
 	w.Header().Set("Content-Type", "application/json")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "token",
@@ -100,7 +107,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response := map[string]string{"token": tokenString}
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {

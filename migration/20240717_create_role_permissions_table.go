@@ -2,31 +2,21 @@
 package migration
 
 import (
-	"database/sql"
+	models "golang-boilerplate/common/models/v1"
 	"log"
+
+	"gorm.io/gorm"
 )
 
-func CreateRolePermissionsTable(db *sql.DB) {
-	dropQuery := `
-    DROP TABLE IF EXISTS role_permissions;
-    `
-	createQuery := `
-    CREATE TABLE IF NOT EXISTS role_permissions (
-        role_id INT,
-        permission_id INT,
-        FOREIGN KEY (role_id) REFERENCES roles(id),
-        FOREIGN KEY (permission_id) REFERENCES permissions(id),
-        PRIMARY KEY (role_id, permission_id)
-    );`
-
-	// Execute the drop query
-	if _, err := db.Exec(dropQuery); err != nil {
+func CreateRolePermissionsTable(db *gorm.DB) {
+	// Drop the table if it exists
+	if err := db.Migrator().DropTable(&models.RolePermission{}); err != nil {
 		log.Fatalf("Could not drop role_permissions table: %v", err)
 	}
 	log.Println("Dropped role_permissions table if it existed")
 
-	// Execute the create query
-	if _, err := db.Exec(createQuery); err != nil {
+	// Create the table
+	if err := db.AutoMigrate(&models.RolePermission{}); err != nil {
 		log.Fatalf("Could not create role_permissions table: %v", err)
 	}
 	log.Println("Created role_permissions table")
