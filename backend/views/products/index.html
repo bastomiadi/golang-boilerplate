@@ -100,43 +100,6 @@
             $('#createProductModal').modal('show');
         });
 
-        // Handle form submission for create product
-        $('#createProductForm').submit(function (e) {
-            e.preventDefault();
-            const name = $('#createProductName').val();
-            const categoryId = $('#createProductCategory').val();
-            const price = $('#createProductPrice').val();
-
-            // Perform AJAX create
-            $.ajax({
-                url: '/backend/products/create',
-                method: 'POST',
-                data: {
-                    name: name,
-                    category_id: categoryId,
-                    price: price
-                },
-                success: function (response) {
-                    $('#createProductModal').modal('hide');
-                    Swal.fire(
-                        'Created!',
-                        'Product has been created.',
-                        'success'
-                    ).then(() => {
-                        table.ajax.reload();
-                    });
-                },
-                error: function (xhr, status, error) {
-                    console.error('Failed to create product:', error);
-                    Swal.fire(
-                        'Error!',
-                        'Failed to create product.',
-                        'error'
-                    );
-                }
-            });
-        });
-
         // Handle edit button click
         $('#productsTable').on('click', '.editBtn', function () {
             const id = $(this).data('id');
