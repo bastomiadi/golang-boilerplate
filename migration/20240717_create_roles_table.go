@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func UpdateRolesTable(db *gorm.DB) {
+func CreateRolesTable(db *gorm.DB) {
 
 	// Drop the table if it exists
 	if err := db.Migrator().DropTable(&models.Role{}); err != nil {

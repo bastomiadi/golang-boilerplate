@@ -10,9 +10,10 @@ func Migrate() {
 	CreateCategoriesTable(db)
 	CreateProductsTable(db)
 	CreateUsersTable(db)
+	CreateProfilesTable(db)
 	CreateMenusTable(db)
-	UpdateRolesTable(db)
-	UpdatePermissionsTable(db)
+	CreateRolesTable(db)
+	CreatePermissionsTable(db)
 	CreateRolePermissionsTable(db)
 	CreateUserRolesTable(db)
 }

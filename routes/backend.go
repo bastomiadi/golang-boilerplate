@@ -24,6 +24,9 @@ func RegisterBackendRoutes(router *mux.Router) {
 	router.HandleFunc("/backend/login", backendControllers.HandleLogin)
 	router.HandleFunc("/backend/logout", backendControllers.HandleLogout)
 
+	router.Handle("/backend/profile/edit", protected(backendControllers.GetProfileEditPage))
+	router.Handle("/backend/profile/update", protected(backendControllers.UpdateProfile))
+
 	// Protected routes
 	router.Handle("/backend/dashboard", protected(backendControllers.Dashboard))
 	router.Handle("/backend/", protected(http.HandlerFunc(backendControllers.Dashboard)))
@@ -69,4 +72,5 @@ func RegisterBackendRoutes(router *mux.Router) {
 	router.Handle("/backend/permissions/create", protected(backendControllers.HandlePermissionCreate))
 	router.Handle("/backend/permissions/update", protected(backendControllers.HandlePermissionUpdate))
 	router.Handle("/backend/permissions/delete", protected(backendControllers.HandlePermissionDelete))
+
 }

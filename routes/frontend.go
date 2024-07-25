@@ -11,5 +11,5 @@ func RegisterFrontendRoutes(router *mux.Router) {
 	// Define frontend routes here
 	router.HandleFunc("/frontend/", frontendControllers.HandleRequest)
 
-	// router.HandleFunc("/", frontendControllers.HandleRequest)
+	router.HandleFunc("/", frontendControllers.HandleRequest)
 }

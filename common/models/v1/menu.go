@@ -7,12 +7,13 @@ import (
 )
 
 type Menu struct {
-	ID           int    `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name         string `gorm:"type:varchar(255);not null" json:"name"`
-	Link         string `gorm:"type:varchar(255)" json:"link"`
-	Parent       int    `gorm:"default:0" json:"parent"`
-	Icon         string `gorm:"type:varchar(255)" json:"icon"`
-	DisplayOrder int    `gorm:"default:0" json:"display_order"`
+	ID           int          `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name         string       `gorm:"type:varchar(255);not null" json:"name"`
+	Link         string       `gorm:"type:varchar(255)" json:"link"`
+	Parent       int          `gorm:"default:0" json:"parent"`
+	Icon         string       `gorm:"type:varchar(255)" json:"icon"`
+	DisplayOrder int          `gorm:"default:0" json:"display_order"`
+	//Permissions  []Permission `gorm:"many2many:menu_permissions;"` // tambahan testing
 }
 
 // GetMenuItems retrieves menu items ordered by parent and display order using GORM

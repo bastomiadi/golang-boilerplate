@@ -1,6 +1,9 @@
 package models
 
+import "gorm.io/gorm"
+
 type UserRole struct {
+	gorm.Model
 	UserID int `gorm:"primaryKey"`
 	RoleID int `gorm:"primaryKey"`
 

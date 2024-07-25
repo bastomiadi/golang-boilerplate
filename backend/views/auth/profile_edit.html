@@ -1,0 +1,44 @@
+<!-- backend/views/categories/index.html -->
+{{ define "head" }}
+
+{{ end }}
+
+{{ define "content" }}
+<form id="profile-form" action="/backend/profile/update" method="POST">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{.User.Name}}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{.User.Email}}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" class="form-control" id="address" name="address" value="{{.Profile.Address}}" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="{{.Profile.Phone}}" required>
+            </div>
+            <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea class="form-control" id="bio" name="bio" rows="3" required>{{.Profile.Bio}}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+    </div>
+</form>
+{{ end }}
+
+{{ define "modals" }}
+    {{ template "modals" }}
+{{ end }}
+
+{{ define "scripts" }}
+<!-- Custom script -->
+
+{{ end }}
+

@@ -16,10 +16,29 @@ func SeedUsersTable() {
 		log.Fatalf("Failed to hash password: %v", err)
 	}
 
-	// Define initial users
 	users := []models.User{
-		{Username: "admin", Name: "Admin Account", Email: "admin@admin.com", Password: password},
-		{Username: "user", Name: "User Account", Email: "user@user.com", Password: password},
+		{
+			Username: "admin",
+			Name:     "Admin Account",
+			Email:    "admin@admin.com",
+			Password: string(password),
+			Profile: models.Profile{
+				Address: "123 Street",
+				Phone:   "123456789",
+				Bio:     "Developer",
+			},
+		},
+		{
+			Username: "user",
+			Name:     "User Account",
+			Email:    "user@user.com",
+			Password: string(password),
+			Profile: models.Profile{
+				Address: "456 Avenue",
+				Phone:   "987654321",
+				Bio:     "Designer",
+			},
+		},
 	}
 
 	// Perform the seed operation

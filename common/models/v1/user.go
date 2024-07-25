@@ -6,11 +6,14 @@ import (
 )
 
 type User struct {
-	ID       int    `gorm:"primaryKey;autoIncrement" json:"id"`
-	Username string `gorm:"type:varchar(255);unique;not null" json:"username"`
-	Name     string `gorm:"type:varchar(255)" json:"name"`
-	Email    string `gorm:"type:varchar(255);unique;not null" json:"email"`
-	Password string `gorm:"type:varchar(255);not null" json:"password"` // Exclude from database and JSON serialization
+	ID        int        `gorm:"primaryKey;autoIncrement" json:"id"`
+	Username  string     `gorm:"type:varchar(255);unique;not null" json:"username"`
+	Name      string     `gorm:"type:varchar(255)" json:"name"`
+	Email     string     `gorm:"type:varchar(255);unique;not null" json:"email"`
+	Password  string     `gorm:"type:varchar(255);not null" json:"password"` // Exclude from database and JSON serialization
+	Profile   Profile    `gorm:"foreignKey:UserID"`
+	UserRoles []UserRole `gorm:"foreignKey:UserID"`
+	//Roles []Role `gorm:"many2many:user_roles;"` // tambahan testing
 }
 
 // CreateUser creates a new user in the database

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"golang-boilerplate/common/models/v1"
+	"golang-boilerplate/config"
 	"golang-boilerplate/utils"
 	"html/template"
 	"log"
@@ -38,8 +39,22 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Fetch the role information
+		var role models.Role
+		db := config.GetDB()
+
+		if err := db.First(&role, user.Profile).Error; err != nil {
+			log.Println("Failed to fetch user role:", err)
+			session.Values["login_error"] = "Failed to fetch user role"
+			session.Save(r, w)
+			http.Redirect(w, r, "/backend/login", http.StatusSeeOther)
+			return
+		}
+
 		// Successful login, redirect to dashboard
 		session.Values["authenticated"] = true
+		session.Values["user_id"] = user.ID     // Add user ID to the session
+		session.Values["user_role"] = role.Name // Add user role to the session
 		delete(session.Values, "login_error")
 		session.Save(r, w)
 		http.Redirect(w, r, "/backend/dashboard", http.StatusSeeOther)

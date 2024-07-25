@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func UpdatePermissionsTable(db *gorm.DB) {
+func CreatePermissionsTable(db *gorm.DB) {
 
 	// Drop the table if it exists
 	if err := db.Migrator().DropTable(&models.Permission{}); err != nil {
