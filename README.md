@@ -9,6 +9,7 @@ Feature
 * Configurable backend theme AdminLTE 3
 * Ajax Crud With Datatable, Modal and Sweetalert
 * backend, Frontend, Api (With Versioning) Modular
+* Support Mysql or Postgresql
 * etc.
 
 This project is still early in its development... please feel free to contribute!
@@ -28,7 +29,19 @@ Installation
 E:\Bastomi\Projects\Golang\project\>git clone https://github.com/bastomiadi/golang-boilerplate.git
 ```
 
-**2.** Run development server:
+**2.** Edit and set database config in .env file, If the database does not exist, create the database first.
+
+```bash
+# for postgresql :
+DB_DSN="user=postgres password= dbname=golang-boilerplate sslmode=disable"
+DB_DRIVER="postgres"
+
+# for mysql
+DB_DSN="root:@tcp(127.0.0.1:3306)/golang-boilerplate?charset=utf8mb4&parseTime=True&loc=Local"
+DB_DRIVER="mysql"
+```
+
+**3.** Run development server:
 
 ```bash
 E:\Bastomi\Projects\Golang\project\golang-boilerplate>go run main.go
@@ -63,7 +76,7 @@ E:\Bastomi\Projects\Golang\project\golang-boilerplate>go run main.go
 
 ```
 
-**3.** Open in browser http://localhost:8080/backend/login
+**4.** Open in browser http://localhost:8080/backend/login
 ```bash
 Default user and password
 +----+------------------+-------------+
